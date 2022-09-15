@@ -6,11 +6,11 @@ public class Lexer implements Error{
     public static int ch; //现在读取的字符
     public static boolean isRetract = false;
     public static Reader reader; //读取字符
-    public static StringBuffer token; //token:存放单词的字符串
-    public static ArrayList<WordInfo> Wordlist;
+    public static StringBuffer token = new StringBuffer(255); //token:存放单词的字符串
+    public static ArrayList<WordInfo> Wordlist = new ArrayList<WordInfo>();
     public static void LexerIt(){
         try{
-            String pathName = "114514"; //文档相对路径
+            String pathName = "testfile.txt"; //文档相对路径
             File file = new File(pathName);
             reader = new InputStreamReader(new FileInputStream(file));
             Error error = new Lexer();//错误
@@ -21,10 +21,10 @@ public class Lexer implements Error{
                 if( !Tools.isNewline((char) ch) && !Tools.isSpace((char) ch) && !Tools.isTab((char) ch) ){//对于space和\r以及\t不做处理直接跳过
 
                     if(Tools.isLetter((char) ch) || Tools.isUline((char) ch)) { //各种除注释、printf中的单词，包括变量名，函数名，int，getint，printf等。
-                        token.append(ch);
+                        token.append((char) ch);
                         getChar();
                         while( Tools.isLetter((char) ch) || Tools.isUline((char) ch) || Tools.isDigit((char) ch)){
-                            token.append(ch);
+                            token.append((char) ch);
                             getChar();
                         }
                         String word = token.toString();
@@ -33,20 +33,20 @@ public class Lexer implements Error{
                         NewIdentInfo(word);
                     }else if(Tools.isDigit((char) ch)){ //24岁，是数字
                         while(Tools.isDigit((char) ch)){
-                            token.append(ch);
+                            token.append((char) ch);
                             getChar();
                         }
                         NewNumberInfo(token.toString(), "INTCON",Integer.parseInt(token.toString()));
                         token.delete(0, token.length());
                         SwitchRetract();
                     }else if(Tools.isDquotes((char) ch)){ //printf里面的东西捏
-                        token.append(ch);
+                        token.append((char) ch);
                         getChar();
                         boolean isMod = false,is_n = false; //判断前一个符号是不是 %  \
                         int formatCharNum = 0;    //记录FormatChar的个数，即%d的个数。
                         while(!Tools.isDquotes((char) ch)){ // 没有读到"前不会结束,假如中间出现换行、非NormalChar的字符、%后面不是d、\后面不是n结束则报错
                             if(Tools.isNormalChar((char) ch) && !isMod ){
-                                token.append(ch);
+                                token.append((char) ch);
                                 if( is_n && ch != 'n')
                                     error.SolveError(0);// \后面不是n的错误
                                 else if(is_n)
@@ -54,10 +54,10 @@ public class Lexer implements Error{
                                 if( ch == '\\' )
                                     is_n = true;
                             }else if( Tools.isMod((char) ch) && !isMod ){
-                                token.append(ch);
+                                token.append((char) ch);
                                 isMod = true;
                             }else if( isMod && ch == 'd' ){
-                                token.append(ch);
+                                token.append((char) ch);
                                 formatCharNum++;
                                 isMod = false;
                             }else if(isMod){
@@ -73,7 +73,7 @@ public class Lexer implements Error{
                         }
                         //此时 ch = “ 或 -1
                         if( ch == -1 ) break;
-                        token.append(ch);
+                        token.append((char) ch);
                         NewNumberInfo(token.toString(), "STRCON",formatCharNum);
                         token.delete(0, token.length());
                     }else if(Tools.isNot((char) ch)){//!(NOT)
@@ -179,6 +179,7 @@ public class Lexer implements Error{
                 if( ch == -1 ) break;
             }
             reader.close();
+            System.out.println("analyze finish!");
             OutputWordList();
         } catch(Exception e) {
             e.printStackTrace();
@@ -215,8 +216,20 @@ public class Lexer implements Error{
         }
         return ch;//返回当前读到的字符
     }
-    public static void OutputWordList(){
-        System.out.println("print it!"); //暂定
+    public static void OutputWordList() throws IOException {
+        String pathName = "output.txt";
+        File file = new File(pathName);
+        if(!file.exists()) file.createNewFile();
+        FileWriter fileWriter = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = new BufferedWriter(fileWriter);
+        for(int i = 0; i < Wordlist.size(); i++){
+            if( i == Wordlist.size() - 1 )
+                bw.write(Wordlist.get(i).getSymbol() + " " + Wordlist.get(i).getWord() );
+            else
+                bw.write(Wordlist.get(i).getSymbol() + " " + Wordlist.get(i).getWord() + "\n");
+        }
+        bw.close();
+        System.out.println("output finish!");
     }
     public static void NewIdentInfo(String word){
         switch (word) {

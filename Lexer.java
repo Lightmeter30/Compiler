@@ -68,7 +68,7 @@ public class Lexer implements Error{
                             }else if( ch == -1 ){
                                 error.SolveError(0); //已经结束力！
                             }
-                            if( ch == -1 ) break;
+                            if( ch == -1 ) break; //先看看问题吧
                             getChar();
                         }
                         //此时 ch = “ 或 -1
@@ -116,6 +116,8 @@ public class Lexer implements Error{
                                     getChar();
                                     if(Tools.isEnter((char) ch))// \n
                                         lineNum++;
+                                    else if(Tools.isMult((char) ch))
+                                        SwitchRetract();
                                     else if(Tools.isDivi((char) ch) || ch == -1 )// / 或 \0
                                         break;
                                 }else if(Tools.isEnter((char) ch)){ // \n

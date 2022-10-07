@@ -30,21 +30,26 @@ public class SyntacticParser implements Error{
     }
     /*
     * 函数名: CompUnit 编译单元
-    * 文法: Decl → ConstDecl | VarDecl
+    * 文法: CompUnit → {Decl} {FuncDef} MainFuncDef
     * */
     public static void CompUnit(){
-        //CompUnit → {Decl} {FuncDef} MainFuncDef
-        while(Tools.isConstDecl(WordlistIndex) || Tools.isConstDecl(WordlistIndex))
-            SyntacticParser.Decl();
-        while(Tools.isFuncDef(WordlistIndex))
-            SyntacticParser.FuncDef();
-        if(Tools.isMainFuncDef(WordlistIndex))
+        //
+        while(Tools.isConstDecl(WordlistIndex) || Tools.isVarDecl(WordlistIndex)){
+            SyntacticParser.Decl();// ';'
+            SyntacticParser.ReadOneWord(); // ConstDecl  or VarDecl or FuncDef
+        }
+        while(Tools.isFuncDef(WordlistIndex)){
+            SyntacticParser.FuncDef(); // '}'
+            SyntacticParser.ReadOneWord(); // FuncDef or MainFunc
+        }
+        if(Tools.isMainFuncDef(WordlistIndex)){
             SyntacticParser.MainFuncDef();
+        }
         else
             e.SolveError(1);//没有main函数的错误
         SyntacticParser.NewParseInfo("<CompUnit>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<CompUnit>");
+        System.out.println("<CompUnit>");
     }
     /*
      * 函数名: Decl 声明
@@ -59,7 +64,7 @@ public class SyntacticParser implements Error{
             e.SolveError(1);//不是Decl
         SyntacticParser.NewParseInfo("<Decl>","NoOutput");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<Decl>");
+        System.out.println("<Decl>");
     }
     /*
      * 函数名: ConstDecl 常量声明
@@ -81,7 +86,7 @@ public class SyntacticParser implements Error{
         //此时的单词应该是;
         SyntacticParser.NewParseInfo("<ConstDecl>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<ConstDecl>");
+        System.out.println("<ConstDecl>");
     }
     /*
      * 函数名: ConstDef 常数定义
@@ -103,7 +108,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.ConstInitVal();
         SyntacticParser.NewParseInfo("<ConstDef>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<ConstDef>");
+        System.out.println("<ConstDef>");
     }
     /*
      * 函数名: ConstInitial 常数初值
@@ -127,7 +132,7 @@ public class SyntacticParser implements Error{
         }
         SyntacticParser.NewParseInfo("<ConstInitVal>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<ConstInitVal>");
+        System.out.println("<ConstInitVal>");
     }
     /*
      * 函数名: VarDecl 变量声明
@@ -147,7 +152,7 @@ public class SyntacticParser implements Error{
         //此时单词为;
         SyntacticParser.NewParseInfo("<VarDecl>","");
         SyntacticParser.ReadOneWord();
-        //System.out.println("<VarDecl>");
+        System.out.println("<VarDecl>");
     }
     /*
      * 函数名: VarDef 变量定义
@@ -173,7 +178,7 @@ public class SyntacticParser implements Error{
         }
         SyntacticParser.NewParseInfo("<VarDef>","");
         SyntacticParser.ReadOneWord();
-        //System.out.println("<VarDef>");
+        System.out.println("<VarDef>");
     }
     /*
      * 函数名: Initial 变量初值
@@ -198,7 +203,7 @@ public class SyntacticParser implements Error{
         }
         SyntacticParser.NewParseInfo("<InitVal>","");
         SyntacticParser.ReadOneWord();
-        //System.out.println("<InitVal>");
+        System.out.println("<InitVal>");
     }
     /*
      * 函数名: FuncType 函数类型
@@ -207,7 +212,7 @@ public class SyntacticParser implements Error{
     public static void FuncType(){
         SyntacticParser.NewParseInfo("<FuncType>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<FuncType>");
+        System.out.println("<FuncType>");
     }
     /*
      * 函数名: FuncFParams 函数形参表
@@ -248,7 +253,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<FuncFParam>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<FuncFParam>");
+        System.out.println("<FuncFParam>");
     }
     /*
      * 函数名: Block 语句块
@@ -264,7 +269,7 @@ public class SyntacticParser implements Error{
         }
         SyntacticParser.NewParseInfo("<Block>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<Block>");
+        System.out.println("<Block>");
     }
     /*
      * 函数名: BlockItem 语句块项
@@ -277,7 +282,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.Stmt();
         SyntacticParser.NewParseInfo("<BlockItem>","NoOutput");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<BlockItem>");
+        System.out.println("<BlockItem>");
     }
     /*
      * 函数名: Stmt 语句
@@ -347,12 +352,12 @@ public class SyntacticParser implements Error{
         }else{
             if(!Tools.isSEMI(WordlistIndex)){
                 SyntacticParser.Exp();
+                SyntacticParser.ReadOneWord(); // ';'
             }
-            SyntacticParser.ReadOneWord(); // ';'
         }
         SyntacticParser.NewParseInfo("<Stmt>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<Stmt>");
+        System.out.println("<Stmt>");
     }
     /*
      * 函数名: Exp 表达式
@@ -362,7 +367,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.AddExp();
         SyntacticParser.NewParseInfo("<Exp>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<Exp>");
+        System.out.println("<Exp>");
     }
     /*
      * 函数名: Cond 条件表达式
@@ -389,7 +394,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<LVal>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<LVal>");
+        System.out.println("<LVal>");
     }
     /*
      * 函数名: PrimaryExp 基本表达式
@@ -408,17 +413,17 @@ public class SyntacticParser implements Error{
             e.SolveError(1);
         SyntacticParser.NewParseInfo("<PrimaryExp>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<PrimaryExp>");
+        System.out.println("<PrimaryExp>");
     }
     /*
      * 函数名: Number 数值
      * 文法: Number → IntConst
      * */
     public static void Number(){
-        SyntacticParser.ReadOneWord(); //IntConst
+        //IntConst
         SyntacticParser.NewParseInfo("<Number>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<Number>");
+        System.out.println("<Number>");
     }
     /*
      * 函数名: UnaryExp 一元表达式
@@ -449,17 +454,17 @@ public class SyntacticParser implements Error{
             e.SolveError(1);
         SyntacticParser.NewParseInfo("<UnaryExp>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<UnaryExp>");
+        System.out.println("<UnaryExp>");
     }
     /*
      * 函数名: UnaryOp 单目运算符
      * 文法: UnaryOp → '+' | '−' | '!'
      * */
     public static void UnaryOp(){
-        SyntacticParser.ReadOneWord(); // '+' '-' '!'
+        //SyntacticParser.ReadOneWord(); // '+' '-' '!'
         SyntacticParser.NewParseInfo("<UnaryOp>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<UnaryOp>");
+        System.out.println("<UnaryOp>");
     }
     /*
      * 函数名: FuncRParams 函数实参表
@@ -476,7 +481,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<FuncRParams>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<FuncRParams>");
+        System.out.println("<FuncRParams>");
     }
     /*
      * 函数名: MulExp 乘除模表达式
@@ -496,7 +501,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.ReadOneWord(); // MulOp or other
         }
         SyntacticParser.BackWord(1);
-//        System.out.println("<MulExp>");
+        System.out.println("<MulExp>");
     }
     /*
      * 函数名: AddExp 加减表达式
@@ -516,7 +521,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.ReadOneWord(); // AddOp or other
         }
         SyntacticParser.BackWord(1);
-//        System.out.println("<AddExp>");
+        System.out.println("<AddExp>");
 
     }
     /*
@@ -537,7 +542,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.ReadOneWord(); // RelOp or other
         }
         SyntacticParser.BackWord(1);
-//        System.out.println("<RelExp>");
+        System.out.println("<RelExp>");
     }
     /*
      * 函数名: EqExp 相等性表达式
@@ -557,7 +562,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.ReadOneWord(); // EqOp or other
         }
         SyntacticParser.BackWord(1);
-//        System.out.println("<EqExp>");
+        System.out.println("<EqExp>");
     }
     /*
      * 函数名: LAndExp 逻辑与表达式
@@ -577,7 +582,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.ReadOneWord(); // '&&' or other
         }
         SyntacticParser.BackWord(1);
-//        System.out.println("<LAndExp>");
+        System.out.println("<LAndExp>");
     }
     /*
      * 函数名: LOrExp 逻辑或表达式
@@ -597,7 +602,7 @@ public class SyntacticParser implements Error{
             SyntacticParser.ReadOneWord(); // '||' or other
         }
         SyntacticParser.BackWord(1);
-//        System.out.println("<LOrExp>");
+        System.out.println("<LOrExp>");
     }
     /*
      * 函数名: ConstExp 常量表达式
@@ -607,7 +612,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.AddExp();
         SyntacticParser.NewParseInfo("<ConstExp>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<ConstExp>");
+        System.out.println("<ConstExp>");
     }
     /*
      * 函数名:
@@ -616,7 +621,7 @@ public class SyntacticParser implements Error{
     public static void BType(){ //不需要输出
         SyntacticParser.NewParseInfo("<BType>","NoOutput");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<BType>");
+        System.out.println("<BType>");
     }
     /*
      * 函数名: FuncDef 函数定义
@@ -638,7 +643,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.Block();
         SyntacticParser.NewParseInfo("<FuncDef>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<FuncDef>");
+        System.out.println("<FuncDef>");
     }
     /*
      * 函数名: MainFuncDef 主函数定义
@@ -652,7 +657,7 @@ public class SyntacticParser implements Error{
         SyntacticParser.Block();
         SyntacticParser.NewParseInfo("<MainFuncDef>","");
         SyntacticParser.ReadOneWord();
-//        System.out.println("<MainFuncDef>");
+        System.out.println("<MainFuncDef>");
     }
     /*
      * 函数名: NewParseInfo

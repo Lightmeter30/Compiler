@@ -182,7 +182,7 @@ public class Lexer implements Error{
             }
             reader.close();
             System.out.println("analyze finish!");
-            OutputWordList();
+            //OutputWordList();
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -199,7 +199,7 @@ public class Lexer implements Error{
     * 新建一个词法信息类并将其添加到Wordlist(非数字)
     * */
     public static void NewWordInfo(String word,String symbol){
-        WordInfo tempInfo = new WordInfo(word,symbol);
+        WordInfo tempInfo = new ConstInfo(word,symbol,lineNum);
         Wordlist.add(tempInfo);
     }
     /*
@@ -207,7 +207,7 @@ public class Lexer implements Error{
      * 新建一个词法信息类并将其添加到Wordlist(数字)
      * */
     public static void NewNumberInfo(String word,String symbol,int num){
-        WordInfo tempInfo = new WordInfo(word,symbol,num);
+        WordInfo tempInfo = new VarInfo(word,symbol,num,lineNum);
         Wordlist.add(tempInfo);
     }
     public static int getChar() throws IOException {
@@ -225,10 +225,17 @@ public class Lexer implements Error{
         FileWriter fileWriter = new FileWriter(file.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fileWriter);
         for(int i = 0; i < Wordlist.size(); i++){
-            if( i == Wordlist.size() - 1 )
-                bw.write(Wordlist.get(i).getSymbol() + " " + Wordlist.get(i).getWord() );
-            else
-                bw.write(Wordlist.get(i).getSymbol() + " " + Wordlist.get(i).getWord() + "\n");
+            if(!Wordlist.get(i).getSymbol().equals("NoOutput")){
+                if( i == Wordlist.size() - 1 ){
+
+                    bw.write(Wordlist.get(i).getWord() );
+                } else{
+                    if(Wordlist.get(i).getSymbol().equals(""))
+                        bw.write(Wordlist.get(i).getWord()+"\n");
+                    else
+                        bw.write(Wordlist.get(i).getSymbol() + " " + Wordlist.get(i).getWord() + "\n");
+                }
+            }
         }
         bw.close();
         System.out.println("output finish!");

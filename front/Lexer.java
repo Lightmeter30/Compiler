@@ -1,7 +1,13 @@
+package front;
+
+import front.Word.ConstInfo;
+import front.Word.VarInfo;
+import front.Word.WordInfo;
+
 import java.io.*;
 import java.util.ArrayList;
 
-public class Lexer implements Error{
+public class Lexer implements Error {
     public static int lineNum = 1;
     public static int ch; //现在读取的字符
     public static boolean isRetract = false;

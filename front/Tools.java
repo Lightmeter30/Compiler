@@ -1,3 +1,5 @@
+package front;
+
 public class Tools {
     /*词法分析工具函数*/
     public static boolean isSpace(char word){

@@ -1,3 +1,5 @@
+package front.Word;
+
 public abstract class WordInfo {
     private String word;
     private String symbol;

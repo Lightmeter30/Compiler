@@ -1,13 +1,25 @@
-public class SyntacticParser implements Error{
+package front;
+
+import front.SyntaxTree.Number;
+import front.Word.ConstInfo;
+import front.Word.ParseInfo;
+import front.Word.VarInfo;
+import front.Word.WordInfo;
+import front.SyntaxTree.*;
+
+import java.util.ArrayList;
+
+public class SyntacticParser implements Error {
     public static int WordlistNum = Lexer.Wordlist.size();
     public static int WordlistIndex = -1; //WordlistIndex表示当前读到的单词的下标
     public static Error e = new SyntacticParser();
     public static int BlockType = -1; //当前Block块的属性
+    public static CompUnit TreeRoot;
     //不需要输出<BlockItem>, <Decl>, <BType>
     public static void SyntacticParse(){
         try{
         SyntacticParser.ReadOneWord();
-        SyntacticParser.CompUnit();
+        TreeRoot = SyntacticParser.CompUnit();
         Lexer.OutputWordList();
         }catch (Exception e){
             e.printStackTrace();
@@ -32,139 +44,168 @@ public class SyntacticParser implements Error{
     * 函数名: CompUnit 编译单元
     * 文法: CompUnit → {Decl} {FuncDef} MainFuncDef
     * */
-    public static void CompUnit(){
+    public static CompUnit CompUnit(){
         //
+        ArrayList<Decl> decls = new ArrayList<>();
+        ArrayList<FuncDef> funcDefs = new ArrayList<>();
+        MainFuncDef mainFuncDef = null;
         while(Tools.isConstDecl(WordlistIndex) || Tools.isVarDecl(WordlistIndex)){
-            SyntacticParser.Decl();// ';'
+            decls.add(SyntacticParser.Decl()); // ';'
             SyntacticParser.ReadOneWord(); // ConstDecl  or VarDecl or FuncDef
         }
         while(Tools.isFuncDef(WordlistIndex)){
-            SyntacticParser.FuncDef(); // '}'
+            funcDefs.add(SyntacticParser.FuncDef()); // '}'
             SyntacticParser.ReadOneWord(); // FuncDef or MainFunc
         }
         if(Tools.isMainFuncDef(WordlistIndex)){
-            SyntacticParser.MainFuncDef();
+            mainFuncDef = SyntacticParser.MainFuncDef();
         }
         else
             e.SolveError(1);//没有main函数的错误
         SyntacticParser.NewParseInfo("<CompUnit>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<CompUnit>");
+//        System.out.println("<CompUnit>");
+        return new CompUnit(decls,funcDefs,mainFuncDef);
     }
     /*
      * 函数名: Decl 声明
      * 文法: Decl → ConstDecl | VarDecl
      * */
-    public static void Decl(){ //不需要输出
-        if(Tools.isConstDecl(WordlistIndex))
-            SyntacticParser.ConstDecl();
-        else if(Tools.isVarDecl(WordlistIndex))
-            SyntacticParser.VarDecl();
-        else
+    public static Decl Decl(){ //不需要输出
+        if(Tools.isConstDecl(WordlistIndex)) {
+            ConstDecl temp;
+            temp =  SyntacticParser.ConstDecl();
+            SyntacticParser.NewParseInfo("<Decl>","NoOutput");
+            SyntacticParser.ReadOneWord();
+            System.out.println("<Decl>");
+            return new Decl(temp);
+        } else if(Tools.isVarDecl(WordlistIndex)) {
+            VarDecl temp;
+            temp = SyntacticParser.VarDecl();
+            SyntacticParser.NewParseInfo("<Decl>","NoOutput");
+            SyntacticParser.ReadOneWord();
+            System.out.println("<Decl>");
+            return new Decl(temp);
+        } else
             e.SolveError(1);//不是Decl
-        SyntacticParser.NewParseInfo("<Decl>","NoOutput");
-        SyntacticParser.ReadOneWord();
-        System.out.println("<Decl>");
+        return null;
     }
     /*
      * 函数名: ConstDecl 常量声明
      * 文法: ConstDecl → 'const' BType ConstDef { ',' ConstDef } ';'
      * */
-    public static void ConstDecl(){
+    public static ConstDecl ConstDecl(){
+        BType bType;
+        ArrayList<ConstDef> constDefs = new ArrayList<>();
         //目前是单词const,接下来继续读一个单词,应该是int
         SyntacticParser.ReadOneWord();
-        SyntacticParser.BType();
+        bType = SyntacticParser.BType();
         SyntacticParser.ReadOneWord();
-        SyntacticParser.ConstDef();
+        constDefs.add(SyntacticParser.ConstDef());
         //此单词有两种合法情况:,或;
         SyntacticParser.ReadOneWord();
         while(Tools.isCOMMA(WordlistIndex)){//当其为逗号时循环
             SyntacticParser.ReadOneWord();//读入ConstDef中的第一个单词
-            SyntacticParser.ConstDef();
+            constDefs.add(SyntacticParser.ConstDef());
             SyntacticParser.ReadOneWord();//读入ConstDef后面的一个单词
         }
         //此时的单词应该是;
         SyntacticParser.NewParseInfo("<ConstDecl>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<ConstDecl>");
+//        System.out.println("<ConstDecl>");
+        return new ConstDecl(bType,constDefs);
     }
     /*
      * 函数名: ConstDef 常数定义
      * 文法: ConstDef → Ident { '[' ConstExp ']' } '=' ConstInitVal
      * */
-    public static void ConstDef(){
+    public static ConstDef ConstDef(){
         //此时单词为Ident
+        Ident ident = new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
+        ArrayList<ConstExp> constExps = new ArrayList<>();
+        ConstInitVal constInitVal;
         int arrayDimension = 0;
         SyntacticParser.ReadOneWord();//此时为[或=
         while(Tools.isLbrack(WordlistIndex)){
             SyntacticParser.ReadOneWord();//读入ConstExp的第一个单词
-            SyntacticParser.ConstExp();
+            constExps.add(SyntacticParser.ConstExp());
             SyntacticParser.ReadOneWord();//此时应该为]
             SyntacticParser.ReadOneWord();//此时为[或=
             arrayDimension++;
         }
         if(arrayDimension > 2) e.SolveError(1); //最多为二维数组
         SyntacticParser.ReadOneWord();//此时应该为ConstInitial的首个单词
-        SyntacticParser.ConstInitVal();
+        constInitVal =  SyntacticParser.ConstInitVal();
         SyntacticParser.NewParseInfo("<ConstDef>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<ConstDef>");
+//        System.out.println("<ConstDef>");
+        return new ConstDef(ident,constExps,constInitVal);
     }
     /*
      * 函数名: ConstInitial 常数初值
      * 文法: ConstInitVal → ConstExp | '{' [ ConstInitVal { ',' ConstInitVal } ] '}'
      * */
-    public static void ConstInitVal(){
+    public static ConstInitVal ConstInitVal(){
+        ConstInitVal.Type type = ConstInitVal.Type.mulConstInitVal;
+        ArrayList<TreeNode> childNode = new ArrayList<>();
         if(Tools.isLbrace(WordlistIndex)){
             SyntacticParser.ReadOneWord();//可能是ConstInitial的首单词或者}
             if(!Tools.isRbrace(WordlistIndex)){//此时是可能ConstInitial的首单词
-                SyntacticParser.ConstInitVal();
+                childNode.add(SyntacticParser.ConstInitVal());
                 SyntacticParser.ReadOneWord();//此时为,或者}
                 while(Tools.isCOMMA(WordlistIndex)){//此时为,
                     SyntacticParser.ReadOneWord();
-                    SyntacticParser.ConstInitVal();
+                    childNode.add(SyntacticParser.ConstInitVal());
                     SyntacticParser.ReadOneWord();
                 }
             }
             //此时为}
         }else{
-            SyntacticParser.ConstExp();
+            type = ConstInitVal.Type.ConstExp;
+            childNode.add(SyntacticParser.ConstExp());
         }
         SyntacticParser.NewParseInfo("<ConstInitVal>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<ConstInitVal>");
+//        System.out.println("<ConstInitVal>");
+        return new ConstInitVal(type,childNode);
     }
     /*
      * 函数名: VarDecl 变量声明
      * 文法: VarDecl → BType VarDef { ',' VarDef } ';'
      * */
-    public static void VarDecl(){
+    public static VarDecl VarDecl(){
+        BType bType;
+        ArrayList<VarDef> varDefs = new ArrayList<>();
         //当前单词为BType
-        SyntacticParser.BType();
+        bType =  SyntacticParser.BType();
         SyntacticParser.ReadOneWord();
-        SyntacticParser.VarDef();
+        varDefs.add(SyntacticParser.VarDef());
         SyntacticParser.ReadOneWord();
         while(Tools.isCOMMA(WordlistIndex)){
             SyntacticParser.ReadOneWord();
-            SyntacticParser.VarDef();
+            varDefs.add(SyntacticParser.VarDef());
             SyntacticParser.ReadOneWord();
         }
         //此时单词为;
         SyntacticParser.NewParseInfo("<VarDecl>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<VarDecl>");
+//        System.out.println("<VarDecl>");
+        return new VarDecl(bType,varDefs);
     }
     /*
      * 函数名: VarDef 变量定义
      * 文法: VarDef → Ident { '[' ConstExp ']' } [ '=' InitVal ]
      * 解释: 包含普通变量、一维数组、二维数组定义
      * */
-    public static void VarDef(){
+    public static VarDef VarDef(){
+        Ident ident = new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
+        ArrayList<ConstExp> constExps = new ArrayList<>();
+        InitVal initVal;
         int arrayDimension = 0;
         SyntacticParser.ReadOneWord();
-        while(Tools.isLbrack(WordlistIndex)){//左括号,最多是二维数组
+        while(Tools.isLbrack(WordlistIndex)){//'['左括号,最多是二维数组
             SyntacticParser.ReadOneWord();
-            SyntacticParser.ConstExp();
+            constExps.add(SyntacticParser.ConstExp());
             SyntacticParser.ReadOneWord();
             SyntacticParser.ReadOneWord();
             arrayDimension++;
@@ -172,80 +213,103 @@ public class SyntacticParser implements Error{
         if(arrayDimension > 2) e.SolveError(1);
         if(Tools.isEqu(WordlistIndex)){
             SyntacticParser.ReadOneWord();
-            SyntacticParser.InitVal();
-        }else{
-            SyntacticParser.BackWord(1);//多读了一个
+            initVal =  SyntacticParser.InitVal();
+            SyntacticParser.NewParseInfo("<VarDef>","");
+            SyntacticParser.ReadOneWord();
+//            System.out.println("<VarDef>");
+            return new VarDef(ident,constExps,initVal);
         }
+        //不是'='
+        SyntacticParser.BackWord(1);//多读了一个
         SyntacticParser.NewParseInfo("<VarDef>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<VarDef>");
+//        System.out.println("<VarDef>");
+        return new VarDef(ident,constExps);
     }
     /*
      * 函数名: Initial 变量初值
      * 文法: InitVal → Exp | '{' [ InitVal { ',' InitVal } ] '}'
      * 解释: 表达式初值,一维数组、二维数组初值
      * */
-    public static void InitVal(){
+    public static InitVal InitVal(){
+        InitVal.Type type = InitVal.Type.mulInitVal;
+        ArrayList<TreeNode> childNode = new ArrayList<>();
         if(Tools.isLbrace(WordlistIndex)){
             SyntacticParser.ReadOneWord();
             if(!Tools.isRbrace(WordlistIndex)){//此时可能是Initial的首单词
-                SyntacticParser.InitVal();
+                childNode.add(SyntacticParser.InitVal());
                 SyntacticParser.ReadOneWord();
                 while(Tools.isCOMMA(WordlistIndex)){
                     SyntacticParser.ReadOneWord();
-                    SyntacticParser.InitVal();
+                    childNode.add(SyntacticParser.InitVal());
                     SyntacticParser.ReadOneWord();
                 }
             }
             //此时为}
         }else{
-            SyntacticParser.Exp();
+            type = InitVal.Type.Exp;
+            childNode.add(SyntacticParser.Exp());
         }
         SyntacticParser.NewParseInfo("<InitVal>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<InitVal>");
+//        System.out.println("<InitVal>");
+        return new InitVal(type,childNode);
     }
     /*
      * 函数名: FuncType 函数类型
      * 文法: FuncType → 'void' | 'int'
      * */
-    public static void FuncType(){
+    public static FuncType FuncType(){
+        FuncType funcType;
+        if(Lexer.Wordlist.get(WordlistIndex).getSymbol().equals("VOIDTK"))
+            funcType = new FuncType(FuncType.Type.Void);
+        else
+            funcType = new FuncType(FuncType.Type.Int);
         SyntacticParser.NewParseInfo("<FuncType>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<FuncType>");
+//        System.out.println("<FuncType>");
+        return funcType;
     }
     /*
      * 函数名: FuncFParams 函数形参表
      * 文法: FuncFParams → FuncFParam { ',' FuncFParam }
      * */
-    public static void FuncFParams(){
-        SyntacticParser.FuncFParam();
+    public static FuncFParams FuncFParams(){
+        ArrayList<FuncFParam> funcFParams = new ArrayList<>();
+        funcFParams.add(SyntacticParser.FuncFParam());
         SyntacticParser.ReadOneWord();
         while(Tools.isCOMMA(WordlistIndex)){
             SyntacticParser.ReadOneWord();
-            SyntacticParser.FuncFParam();
+            funcFParams.add(SyntacticParser.FuncFParam());
             SyntacticParser.ReadOneWord();
         }
         //此时读入的单词应该是)
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<FuncFParams>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<FuncFParams>");
+//        System.out.println("<FuncFParams>");
+        return new FuncFParams(funcFParams);
     }
     /*
      * 函数名: FuncFParam 函数形参
      * 文法: FuncFParam → BType Ident ['[' ']' { '[' ConstExp ']' }]
      * */
-    public static void FuncFParam(){
-        SyntacticParser.BType();
+    public static FuncFParam FuncFParam(){
+        int dimension = 0;
+        BType bType;
+        ArrayList<ConstExp> constExps = new ArrayList<>();
+        bType = SyntacticParser.BType();
         SyntacticParser.ReadOneWord();//Ident
+        Ident ident = new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
         SyntacticParser.ReadOneWord();
         if(Tools.isLbrack(WordlistIndex)){//'['
+            dimension++;
             SyntacticParser.ReadOneWord();//应该是']'
-            SyntacticParser.ReadOneWord();//可能是[
+            SyntacticParser.ReadOneWord();//可能是'['
             while(Tools.isLbrack(WordlistIndex)){
+                dimension++;
                 SyntacticParser.ReadOneWord();
-                SyntacticParser.ConstExp();
+                constExps.add(SyntacticParser.ConstExp());
                 SyntacticParser.ReadOneWord();//应该是']'
                 SyntacticParser.ReadOneWord();//可能是'['
             }
@@ -253,36 +317,46 @@ public class SyntacticParser implements Error{
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<FuncFParam>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<FuncFParam>");
+//        System.out.println("<FuncFParam>");
+        return new FuncFParam(bType,ident,constExps,dimension);
     }
     /*
      * 函数名: Block 语句块
      * 文法: Block → '{' { BlockItem } '}'
      * */
-    public static void Block(){
+    public static Block Block(){
+        ArrayList<BlockItem> blockItems = new ArrayList<>();
         SyntacticParser.ReadOneWord();
         if(!Tools.isRbrace(WordlistIndex)){ //不是'}'
             while(!Tools.isRbrace(WordlistIndex)){
-                SyntacticParser.BlockItem();
+                blockItems.add(SyntacticParser.BlockItem());
                 SyntacticParser.ReadOneWord();//可能是'}'
             }
         }
         SyntacticParser.NewParseInfo("<Block>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<Block>");
+//        System.out.println("<Block>");
+        return new Block(blockItems);
     }
     /*
      * 函数名: BlockItem 语句块项
      * 文法: BlockItem → Decl | Stmt
      * */
-    public static void BlockItem(){ //不需要输出
-        if(Tools.isConstDecl(WordlistIndex) || Tools.isVarDecl(WordlistIndex))
-            SyntacticParser.Decl();
-        else
-            SyntacticParser.Stmt();
-        SyntacticParser.NewParseInfo("<BlockItem>","NoOutput");
-        SyntacticParser.ReadOneWord();
-        System.out.println("<BlockItem>");
+    public static BlockItem BlockItem(){ //不需要输出
+        if(Tools.isConstDecl(WordlistIndex) || Tools.isVarDecl(WordlistIndex)){
+            Decl decl;
+            decl = SyntacticParser.Decl();
+            SyntacticParser.NewParseInfo("<BlockItem>","NoOutput");
+            SyntacticParser.ReadOneWord();
+            return new BlockItem(decl);
+        } else{
+            Stmt stmt;
+            stmt = SyntacticParser.Stmt();
+            SyntacticParser.NewParseInfo("<BlockItem>","NoOutput");
+            SyntacticParser.ReadOneWord();
+            return new BlockItem(stmt);
+        }
+//        System.out.println("<BlockItem>");
     }
     /*
      * 函数名: Stmt 语句
@@ -297,133 +371,164 @@ public class SyntacticParser implements Error{
      *      | 'printf' '(' FormatString {','Exp} ')' ';'         'printf'   √
      * 解析:LVal Exp都以可能以Ident开头
      * */
-    public static void Stmt(){
+    public static Stmt Stmt(){
+        ArrayList<TreeNode> childNode = new ArrayList<>();
+        Stmt.Type type = Stmt.Type.None;
         if(Tools.isIf(WordlistIndex)){
+            type = Stmt.Type.IfBranch;
             SyntacticParser.ReadOneWord();//'('
             SyntacticParser.ReadOneWord();//Cond
-            SyntacticParser.Cond();
+            childNode.add(SyntacticParser.Cond());
             SyntacticParser.ReadOneWord();//')'
             SyntacticParser.ReadOneWord();//stmt
-            SyntacticParser.Stmt();
+            childNode.add(SyntacticParser.Stmt());
             SyntacticParser.ReadOneWord();//可能是'else'
             if(Tools.isElse(WordlistIndex)){
                 SyntacticParser.ReadOneWord();//stmt
-                SyntacticParser.Stmt();
+                childNode.add(SyntacticParser.Stmt());
             }else
                 SyntacticParser.BackWord(1);
         }else if(Tools.isWhile(WordlistIndex)){
+            type = Stmt.Type.WhileBranch;
             SyntacticParser.ReadOneWord();//'('
             SyntacticParser.ReadOneWord();//Cond
-            SyntacticParser.Cond();
+            childNode.add(SyntacticParser.Cond());
             SyntacticParser.ReadOneWord();//')'
             SyntacticParser.ReadOneWord();//stmt
-            SyntacticParser.Stmt();
-        }else if(Tools.isBreak(WordlistIndex) || Tools.isContinue(WordlistIndex)){
+            childNode.add(SyntacticParser.Stmt());
+        }else if(Tools.isBreak(WordlistIndex)){
+            type = Stmt.Type.BreakStmt;
+            SyntacticParser.ReadOneWord();//';'
+        }else if(Tools.isContinue(WordlistIndex)){
+            type = Stmt.Type.ContinueStmt;
             SyntacticParser.ReadOneWord();//';'
         }else if(Tools.isReturn(WordlistIndex)){
+            type = Stmt.Type.ReturnStmt;
             SyntacticParser.ReadOneWord();//';' Exp
             if(!Tools.isSEMI(WordlistIndex)){
-                SyntacticParser.Exp();
+                childNode.add(SyntacticParser.Exp());
                 SyntacticParser.ReadOneWord();
             }
         }else if(Tools.isPrintf(WordlistIndex)){
+            type = Stmt.Type.Output;
             SyntacticParser.ReadOneWord();// '('
             SyntacticParser.ReadOneWord(); // FormatString
             SyntacticParser.ReadOneWord(); // ','  ')'
             while(Tools.isCOMMA(WordlistIndex)){
                 SyntacticParser.ReadOneWord(); // Exp
-                SyntacticParser.Exp();
+                childNode.add(SyntacticParser.Exp());
                 SyntacticParser.ReadOneWord();// ','  ')'
             }
             SyntacticParser.ReadOneWord();// ';'
         }else if(Tools.isLbrace(WordlistIndex)){
-            SyntacticParser.Block();
+            type = Stmt.Type.Block;
+            childNode.add(SyntacticParser.Block());
         }else if(Tools.isLVal(WordlistIndex)){
-            SyntacticParser.LVal();
+            childNode.add(SyntacticParser.LVal());
             SyntacticParser.ReadOneWord(); // '='
             SyntacticParser.ReadOneWord(); // 'getint' Exp
             if(Tools.isGetint(WordlistIndex)){
+                type = Stmt.Type.Input;
                 SyntacticParser.ReadOneWord(); // '('
                 SyntacticParser.ReadOneWord(); // ')'
             }else{
-                SyntacticParser.Exp();
+                type = Stmt.Type.Assign;
+                childNode.add(SyntacticParser.Exp());
             }
             SyntacticParser.ReadOneWord(); // ';'
         }else{
             if(!Tools.isSEMI(WordlistIndex)){
-                SyntacticParser.Exp();
+                type = Stmt.Type.Exp;
+                childNode.add(SyntacticParser.Exp());
                 SyntacticParser.ReadOneWord(); // ';'
             }
         }
         SyntacticParser.NewParseInfo("<Stmt>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<Stmt>");
+//        System.out.println("<Stmt>");
+        return new Stmt(type,childNode);
     }
     /*
      * 函数名: Exp 表达式
      * 文法: Exp → AddExp
      * */
-    public static void Exp(){
-        SyntacticParser.AddExp();
+    public static Exp Exp(){
+        AddExp addExp = SyntacticParser.AddExp();
         SyntacticParser.NewParseInfo("<Exp>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<Exp>");
+//        System.out.println("<Exp>");
+        return new Exp(addExp);
     }
     /*
      * 函数名: Cond 条件表达式
      * 文法: Cond → LOrExp
      * */
-    public static void Cond(){
-        SyntacticParser.LOrExp();
+    public static Cond Cond(){
+        LOrExp lOrExp = SyntacticParser.LOrExp();
         SyntacticParser.NewParseInfo("<Cond>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<Cond>");
+//        System.out.println("<Cond>");
+        return new Cond(lOrExp);
     }
     /*
      * 函数名: LVal 左值表达式
      * 文法: LVal → Ident {'[' Exp ']'}
      * */
-    public static void LVal(){
+    public static LVal LVal(){
+        Ident ident = new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
+        ArrayList<Exp> exps = new ArrayList<>();
         SyntacticParser.ReadOneWord(); // '[' other
         while(Tools.isLbrack(WordlistIndex)){
             SyntacticParser.ReadOneWord(); // Exp
-            SyntacticParser.Exp();
+            exps.add(SyntacticParser.Exp());
             SyntacticParser.ReadOneWord(); // ']'
             SyntacticParser.ReadOneWord(); // '[' other
         }
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<LVal>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<LVal>");
+//        System.out.println("<LVal>");
+        return new LVal(ident,exps);
     }
     /*
      * 函数名: PrimaryExp 基本表达式
      * 文法: PrimaryExp → '(' Exp ')' | LVal | Number
      * */
-    public static void PrimaryExp(){
+    public static PrimaryExp PrimaryExp(){
         if(Tools.isLpar(WordlistIndex)){
+            Exp exp;
             SyntacticParser.ReadOneWord(); // Exp
-            SyntacticParser.Exp();
+            exp = SyntacticParser.Exp();
             SyntacticParser.ReadOneWord(); // ')'
+            SyntacticParser.NewParseInfo("<PrimaryExp>","");
+            SyntacticParser.ReadOneWord();
+            return new PrimaryExp(exp);
         }else if(Tools.isConstInt(WordlistIndex)){
-            SyntacticParser.Number();
+            Number number = SyntacticParser.Number();
+            SyntacticParser.NewParseInfo("<PrimaryExp>","");
+            SyntacticParser.ReadOneWord();
+            return new PrimaryExp(number);
         }else if(Tools.isIdent(WordlistIndex)){
-            SyntacticParser.LVal();
+            LVal lval = SyntacticParser.LVal();
+            SyntacticParser.NewParseInfo("<PrimaryExp>","");
+            SyntacticParser.ReadOneWord();
+            return new PrimaryExp(lval);
         }else
             e.SolveError(1);
-        SyntacticParser.NewParseInfo("<PrimaryExp>","");
-        SyntacticParser.ReadOneWord();
-        System.out.println("<PrimaryExp>");
+//        System.out.println("<PrimaryExp>");
+        return null; // may change
     }
     /*
      * 函数名: Number 数值
      * 文法: Number → IntConst
      * */
-    public static void Number(){
+    public static Number Number(){
         //IntConst
+        IntConst intConst = new IntConst((VarInfo) Lexer.Wordlist.get(WordlistIndex));
         SyntacticParser.NewParseInfo("<Number>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<Number>");
+//        System.out.println("<Number>");
+        return new Number(intConst);
     }
     /*
      * 函数名: UnaryExp 一元表达式
@@ -431,233 +536,272 @@ public class SyntacticParser implements Error{
      *                 | Ident '(' [FuncRParams] ')' 3种情况均需覆盖,函数调用也需要覆盖FuncRParams的不同情况
      *                 | UnaryOp UnaryExp
      * */
-    public static void UnaryExp(){
+    public static UnaryExp UnaryExp(){
+        UnaryExp.Type type = UnaryExp.Type.PrimaryExp; //may change
+        ArrayList<TreeNode> childNode = new ArrayList<>();
         if(Tools.isUnaryOp(WordlistIndex)){
-            SyntacticParser.UnaryOp();
+            type = UnaryExp.Type.UnaryExp;
+            childNode.add(SyntacticParser.UnaryOp());
             SyntacticParser.ReadOneWord();// UnaryExp
-            SyntacticParser.UnaryExp();
+            childNode.add(SyntacticParser.UnaryExp());
         }else if(Tools.isIdent(WordlistIndex)){ //函数调用或者PrimaryExp中存在LVal
+            type = UnaryExp.Type.FuncCall;
+            childNode.add(new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord(); // '(' or other
             if(Tools.isLpar(WordlistIndex)){ // '('
                 SyntacticParser.ReadOneWord();// ')' or FuncRParams
                 if(!Tools.isRpar(WordlistIndex)){// Not ')'
-                    SyntacticParser.FuncRParams();
+                    childNode.add(SyntacticParser.FuncRParams());
                     SyntacticParser.ReadOneWord(); // ')'
                 }
             }else{ // It's other,so we need to back one word
+                type = UnaryExp.Type.PrimaryExp;
                 SyntacticParser.BackWord(1);
-                SyntacticParser.PrimaryExp();
+                childNode.add(SyntacticParser.PrimaryExp());
             }
         }else if(Tools.isLpar(WordlistIndex) || Tools.isConstInt(WordlistIndex)){
-            SyntacticParser.PrimaryExp();
+            type = UnaryExp.Type.PrimaryExp;
+            childNode.add(SyntacticParser.PrimaryExp());
         }else
             e.SolveError(1);
         SyntacticParser.NewParseInfo("<UnaryExp>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<UnaryExp>");
+//        System.out.println("<UnaryExp>");
+        return new UnaryExp(type,childNode);
     }
     /*
      * 函数名: UnaryOp 单目运算符
      * 文法: UnaryOp → '+' | '−' | '!'
      * */
-    public static void UnaryOp(){
-        //SyntacticParser.ReadOneWord(); // '+' '-' '!'
+    public static UnaryOp UnaryOp(){
+        //front.SyntacticParser.ReadOneWord(); // '+' '-' '!'
         SyntacticParser.NewParseInfo("<UnaryOp>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<UnaryOp>");
+//        System.out.println("<UnaryOp>");
+        return new UnaryOp((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1));
     }
     /*
      * 函数名: FuncRParams 函数实参表
      * 文法: FuncRParams → Exp { ',' Exp }
      * */
-    public static void FuncRParams(){
-        SyntacticParser.Exp();
+    public static FuncRParams FuncRParams(){
+        ArrayList<Exp> exps = new ArrayList<>();
+        exps.add(SyntacticParser.Exp());
         SyntacticParser.ReadOneWord();// ',' or other
         while(Tools.isCOMMA(WordlistIndex)){
             SyntacticParser.ReadOneWord(); // Exp
-            SyntacticParser.Exp();
+            exps.add(SyntacticParser.Exp());
             SyntacticParser.ReadOneWord();// ',' or other
         }
         SyntacticParser.BackWord(1);
         SyntacticParser.NewParseInfo("<FuncRParams>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<FuncRParams>");
+//        System.out.println("<FuncRParams>");
+        return new FuncRParams(exps);
     }
     /*
      * 函数名: MulExp 乘除模表达式
      * 文法: MulExp → UnaryExp | MulExp ('*' | '/' | '%') UnaryExp
      * 改写后的文法: MulExp → UnaryExp { ('*' | '/' | '%') UnaryExp }
      * */
-    public static void MulExp(){
-        SyntacticParser.UnaryExp();
+    public static MulExp MulExp(){
+        ArrayList<ConstInfo> Ops = new ArrayList<>();
+        ArrayList<UnaryExp> unaryExps = new ArrayList<>();
+        unaryExps.add(SyntacticParser.UnaryExp());
         SyntacticParser.NewParseInfo("<MulExp>","");
         SyntacticParser.ReadOneWord(); // <MulExp>
         SyntacticParser.ReadOneWord(); // '*' | '/' | '%' | other
         while(Tools.isMulOp(WordlistIndex)){
+            Ops.add((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
             SyntacticParser.ReadOneWord(); // UnaryExp
-            SyntacticParser.UnaryExp();
+            unaryExps.add(SyntacticParser.UnaryExp());
             SyntacticParser.NewParseInfo("<MulExp>","");
             SyntacticParser.ReadOneWord(); // <MulExp>
             SyntacticParser.ReadOneWord(); // MulOp or other
         }
         SyntacticParser.BackWord(1);
-        System.out.println("<MulExp>");
+//        System.out.println("<MulExp>");
+        return new MulExp(Ops,unaryExps);
     }
     /*
      * 函数名: AddExp 加减表达式
      * 文法: AddExp → MulExp | AddExp ('+' | '−') MulExp
      * 改写后的文法: AddExp → MulExp { ('+' | '−') MulExp }
      * */
-    public static void AddExp(){
-        SyntacticParser.MulExp();
+    public static AddExp AddExp(){
+        ArrayList<ConstInfo> Ops = new ArrayList<>();
+        ArrayList<MulExp> mulExps = new ArrayList<>();
+        mulExps.add(SyntacticParser.MulExp());
         SyntacticParser.NewParseInfo("<AddExp>","");
         SyntacticParser.ReadOneWord(); // <AddExp>
         SyntacticParser.ReadOneWord(); // '+' | '−' or other
         while(Tools.isAddOp(WordlistIndex)){
+            Ops.add((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
             SyntacticParser.ReadOneWord(); // MulExp
-            SyntacticParser.MulExp();
+            mulExps.add(SyntacticParser.MulExp());
             SyntacticParser.NewParseInfo("<AddExp>","");
             SyntacticParser.ReadOneWord(); // <AddExp>
             SyntacticParser.ReadOneWord(); // AddOp or other
         }
         SyntacticParser.BackWord(1);
-        System.out.println("<AddExp>");
-
+//        System.out.println("<AddExp>");
+        return new AddExp(Ops, mulExps);
     }
     /*
      * 函数名: RelExp 关系表达式
      * 文法: RelExp → AddExp | RelExp ('<' | '>' | '<=' | '>=') AddExp
      * 改写后的文法: RelExp → AddExp { ('<' | '>' | '<=' | '>=') AddExp }
      * */
-    public static void RelExp(){
-        SyntacticParser.AddExp();
+    public static RelExp RelExp(){
+        ArrayList<ConstInfo> Ops = new ArrayList<>();
+        ArrayList<AddExp> addExps = new ArrayList<>();
+        addExps.add(SyntacticParser.AddExp());
         SyntacticParser.NewParseInfo("<RelExp>","");
         SyntacticParser.ReadOneWord(); // <RelExp>
         SyntacticParser.ReadOneWord(); // RelOp or other
         while(Tools.isRelOp(WordlistIndex)){
+            Ops.add((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
             SyntacticParser.ReadOneWord(); // AddExp
-            SyntacticParser.AddExp();
+            addExps.add(SyntacticParser.AddExp());
             SyntacticParser.NewParseInfo("<RelExp>","");
             SyntacticParser.ReadOneWord(); // <RelExp>
             SyntacticParser.ReadOneWord(); // RelOp or other
         }
         SyntacticParser.BackWord(1);
-        System.out.println("<RelExp>");
+//        System.out.println("<RelExp>");
+        return new RelExp(Ops, addExps);
     }
     /*
      * 函数名: EqExp 相等性表达式
      * 文法: EqExp → RelExp | EqExp ('==' | '!=') RelExp
      * 改写后的文法: EqExp → RelExp { ('==' | '!=') RelExp }
      * */
-    public static void EqExp(){
-        SyntacticParser.RelExp();
+    public static EqExp EqExp(){
+        ArrayList<ConstInfo> Ops = new ArrayList<>();
+        ArrayList<RelExp> relExps = new ArrayList<>();
+        relExps.add(SyntacticParser.RelExp());
         SyntacticParser.NewParseInfo("<EqExp>","");
         SyntacticParser.ReadOneWord(); // <EqExp>
         SyntacticParser.ReadOneWord(); // EqOp or other
         while(Tools.isEqOp(WordlistIndex)){
+            Ops.add((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
             SyntacticParser.ReadOneWord(); // RelExp
-            SyntacticParser.RelExp();
+            relExps.add(SyntacticParser.RelExp());
             SyntacticParser.NewParseInfo("<EqExp>","");
             SyntacticParser.ReadOneWord(); // <EqExp>
             SyntacticParser.ReadOneWord(); // EqOp or other
         }
         SyntacticParser.BackWord(1);
-        System.out.println("<EqExp>");
+//        System.out.println("<EqExp>");
+        return new EqExp(Ops, relExps);
     }
     /*
      * 函数名: LAndExp 逻辑与表达式
      * 文法: LAndExp → EqExp | LAndExp '&&' EqExp
      * 改写后的文法: LAndExp → EqExp { '&&' EqExp }
      * */
-    public static void LAndExp(){
-        SyntacticParser.EqExp();
+    public static LAndExp LAndExp(){
+        ArrayList<EqExp> eqExps = new ArrayList<>();
+        eqExps.add(SyntacticParser.EqExp());
         SyntacticParser.NewParseInfo("<LAndExp>","");
         SyntacticParser.ReadOneWord(); // <LAndExp>
         SyntacticParser.ReadOneWord(); // '&&' or other
         while(Tools.isAnd(WordlistIndex)){
             SyntacticParser.ReadOneWord(); // EqExp
-            SyntacticParser.EqExp();
+            eqExps.add(SyntacticParser.EqExp());
             SyntacticParser.NewParseInfo("<LAndExp>","");
             SyntacticParser.ReadOneWord(); // <LAndExp>
             SyntacticParser.ReadOneWord(); // '&&' or other
         }
         SyntacticParser.BackWord(1);
-        System.out.println("<LAndExp>");
+//        System.out.println("<LAndExp>");
+        return new LAndExp(eqExps);
     }
     /*
      * 函数名: LOrExp 逻辑或表达式
      * 文法: LOrExp → LAndExp | LOrExp '||' LAndExp
      * 改写后的文法: LOrExp → LAndExp { '||' LAndExp }
      * */
-    public static void LOrExp(){
-        SyntacticParser.LAndExp();
+    public static LOrExp LOrExp(){
+        ArrayList<LAndExp> lAndExps = new ArrayList<>();
+        lAndExps.add(SyntacticParser.LAndExp());
         SyntacticParser.NewParseInfo("<LOrExp>","");
         SyntacticParser.ReadOneWord(); // <LOrExp>
         SyntacticParser.ReadOneWord(); // '||' or other
         while(Tools.isOr(WordlistIndex)){
             SyntacticParser.ReadOneWord(); // LAndExp
-            SyntacticParser.LAndExp();
+            lAndExps.add(SyntacticParser.LAndExp());
             SyntacticParser.NewParseInfo("<LOrExp>","");
             SyntacticParser.ReadOneWord(); // <LOrExp>
             SyntacticParser.ReadOneWord(); // '||' or other
         }
         SyntacticParser.BackWord(1);
-        System.out.println("<LOrExp>");
+//        System.out.println("<LOrExp>");
+        return new LOrExp(lAndExps);
     }
     /*
      * 函数名: ConstExp 常量表达式
      * 文法: ConstExp → AddExp
      * */
-    public static void ConstExp(){
-        SyntacticParser.AddExp();
+    public static ConstExp ConstExp(){
+        AddExp addExp = SyntacticParser.AddExp();
         SyntacticParser.NewParseInfo("<ConstExp>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<ConstExp>");
+//        System.out.println("<ConstExp>");
+        return new ConstExp(addExp);
     }
     /*
      * 函数名:
      * 文法:
      * */
-    public static void BType(){ //不需要输出
+    public static BType BType(){ //不需要输出
+        BType.Type type = BType.Type.Int;
         SyntacticParser.NewParseInfo("<BType>","NoOutput");
         SyntacticParser.ReadOneWord();
-        System.out.println("<BType>");
+//        System.out.println("<BType>");
+        return new BType(type);
     }
     /*
      * 函数名: FuncDef 函数定义
      * 文法: FuncDef → FuncType Ident '(' [FuncFParams] ')' Block
      * */
-    public static void FuncDef(){
-        SyntacticParser.FuncType();
+    public static FuncDef FuncDef(){
+        Block block;
+        FuncFParams funcFParams = new FuncFParams(new ArrayList<>());
+        FuncType funcType = SyntacticParser.FuncType();
         SyntacticParser.ReadOneWord();
         //此时单词为Ident
+        Ident ident = new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
         SyntacticParser.ReadOneWord(); // '('
         SyntacticParser.ReadOneWord(); // 可能')'
         if(!Tools.isRpar(WordlistIndex)){//可能为FuncParams
-            SyntacticParser.FuncFParams();
+            funcFParams = SyntacticParser.FuncFParams();
             SyntacticParser.ReadOneWord();
         }
         // ')'
         SyntacticParser.ReadOneWord();
 //        应该是'{'
-        SyntacticParser.Block();
+        block = SyntacticParser.Block();
         SyntacticParser.NewParseInfo("<FuncDef>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<FuncDef>");
+//        System.out.println("<FuncDef>");
+        return new FuncDef(funcType,ident,funcFParams,block);
     }
     /*
      * 函数名: MainFuncDef 主函数定义
      * 文法: MainFuncDef → 'int' 'main' '(' ')' Block
      * */
-    public static void MainFuncDef(){
+    public static MainFuncDef MainFuncDef(){
+        Block block;
         SyntacticParser.ReadOneWord();//'main'
         SyntacticParser.ReadOneWord();//'('
         SyntacticParser.ReadOneWord();//')'
         SyntacticParser.ReadOneWord();//应该是'{'
-        SyntacticParser.Block();
+        block = SyntacticParser.Block();
         SyntacticParser.NewParseInfo("<MainFuncDef>","");
         SyntacticParser.ReadOneWord();
         System.out.println("<MainFuncDef>");
+        return new MainFuncDef(block);
     }
     /*
      * 函数名: NewParseInfo

@@ -13,4 +13,8 @@ public class ConstExp implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
+    public Integer getValue() throws Error {
+        return this.addExp.getValue();
+    }
 }

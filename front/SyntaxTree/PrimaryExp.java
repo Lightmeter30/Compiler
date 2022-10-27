@@ -36,4 +36,17 @@ public class PrimaryExp implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
+
+    public boolean isFuncCall() {
+        return this.exp != null && this.exp.isFuncCall();
+    }
+
+    public Integer getValue() {
+        if(this.number != null){
+            return number.getValue();
+        }else if(this.exp != null){
+            return this.exp.getValue();
+        }
+        return null;
+    }
 }

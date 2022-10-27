@@ -14,4 +14,10 @@ public class FuncFParams implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+    public ArrayList<FuncFParam> getFuncFParams(){
+        return funcFParams;
+    }
+    public Integer getArgc(){
+        return funcFParams.size();
+    }
 }

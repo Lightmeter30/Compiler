@@ -15,4 +15,8 @@ public class FuncType implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
+    public Type getType() {
+        return type;
+    }
 }

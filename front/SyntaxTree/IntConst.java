@@ -15,7 +15,7 @@ public class IntConst implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
-    public int getValue(){
+    public Integer getValue(){
         return this.token.getNum();
     }
 }

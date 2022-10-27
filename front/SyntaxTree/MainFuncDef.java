@@ -12,12 +12,9 @@ public class MainFuncDef implements TreeNode{
         this.childNode.add(block);
         this.childNode.add(blockEnd);
     }
-    public MainFuncDef(Block block){
-        this.block = block;
-        this.childNode.add(block);
-    }
     @Override
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
 }

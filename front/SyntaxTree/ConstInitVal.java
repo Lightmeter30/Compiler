@@ -16,4 +16,14 @@ public class ConstInitVal implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
+    public void getInitValue(ArrayList<String> initValues){
+        if(this.type.equals(Type.ConstExp)) {
+            initValues.add(Integer.toString(((ConstExp) childNode.get(0)).getValue()));
+        }else {
+            for(TreeNode node: this.childNode){
+                ((ConstInitVal) node).getInitValue(initValues);
+            }
+        }
+    }
 }

@@ -14,4 +14,12 @@ public class Exp implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
+
+    public boolean isFuncCall() {
+        return this.addExp.isFuncCall();
+    }
+
+    public Integer getValue() {
+        return addExp.getValue();
+    }
 }

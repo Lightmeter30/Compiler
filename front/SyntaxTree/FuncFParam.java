@@ -25,4 +25,20 @@ public class FuncFParam implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+    public String getName(){
+        return ident.getName();
+    }
+    public int getDimension(){
+        return this.dimension;
+    }
+    public ArrayList<Integer> getShape() throws Error{
+        ArrayList<Integer> shape = new ArrayList<>();
+        if(isArray) {
+            shape.add(-1);
+        }
+        for(ConstExp exp: constExps){
+            shape.add(exp.getValue());
+        }
+        return shape;
+    }
 }

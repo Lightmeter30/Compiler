@@ -139,7 +139,7 @@ public class SyntacticParser implements Error {
         SyntacticParser.NewParseInfo("<ConstDef>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<ConstDef>");
-        return new ConstDef(ident,constExps,constInitVal);
+        return new ConstDef(ident,arrayDimension,constExps,constInitVal);
     }
     /*
      * 函数名: ConstInitial 常数初值
@@ -217,14 +217,14 @@ public class SyntacticParser implements Error {
             SyntacticParser.NewParseInfo("<VarDef>","");
             SyntacticParser.ReadOneWord();
 //            System.out.println("<VarDef>");
-            return new VarDef(ident,constExps,initVal);
+            return new VarDef(ident, arrayDimension,constExps,initVal);
         }
         //不是'='
         SyntacticParser.BackWord(1);//多读了一个
         SyntacticParser.NewParseInfo("<VarDef>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<VarDef>");
-        return new VarDef(ident,constExps);
+        return new VarDef(ident, arrayDimension, constExps);
     }
     /*
      * 函数名: Initial 变量初值
@@ -782,10 +782,11 @@ public class SyntacticParser implements Error {
         SyntacticParser.ReadOneWord();
 //        应该是'{'
         block = SyntacticParser.Block();
+        ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
         SyntacticParser.NewParseInfo("<FuncDef>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<FuncDef>");
-        return new FuncDef(funcType,ident,funcFParams,block);
+        return new FuncDef(funcType,ident,funcFParams,block,blockEnd);
     }
     /*
      * 函数名: MainFuncDef 主函数定义
@@ -798,10 +799,11 @@ public class SyntacticParser implements Error {
         SyntacticParser.ReadOneWord();//')'
         SyntacticParser.ReadOneWord();//应该是'{'
         block = SyntacticParser.Block();
+        ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
         SyntacticParser.NewParseInfo("<MainFuncDef>","");
         SyntacticParser.ReadOneWord();
         System.out.println("<MainFuncDef>");
-        return new MainFuncDef(block);
+        return new MainFuncDef(block,blockEnd);
     }
     /*
      * 函数名: NewParseInfo

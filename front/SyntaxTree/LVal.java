@@ -17,4 +17,5 @@ public class LVal implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
+
 }

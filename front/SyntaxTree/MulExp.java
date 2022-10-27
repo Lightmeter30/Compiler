@@ -18,4 +18,21 @@ public class MulExp implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
+    public Integer getValue() {
+        int value = unaryExps.get(0).getValue();
+        for(int index = 1; index < unaryExps.size(); index++){
+            if(Ops.get(index - 1).getWord().equals("*"))
+                value = value * unaryExps.get(index).getValue();
+            else if(Ops.get(index - 1).getWord().equals("/"))
+                value = value / unaryExps.get(index).getValue();
+            else
+                value = value % unaryExps.get(index).getValue();
+        }
+        return value;
+    }
+
+    public boolean isFuncCall() {
+        return this.unaryExps.size() == 1 && this.unaryExps.get(0).isFuncCall();
+    }
 }

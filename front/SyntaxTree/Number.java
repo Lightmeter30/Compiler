@@ -14,4 +14,8 @@ public class Number implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
+
+    public Integer getValue() {
+        return intConst.getValue();
+    }
 }

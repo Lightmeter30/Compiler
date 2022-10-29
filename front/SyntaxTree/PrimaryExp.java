@@ -49,4 +49,20 @@ public class PrimaryExp implements TreeNode{
         }
         return null;
     }
+
+    public String getName() {
+        if ( this.lVal != null )
+            return this.lVal.getName();
+        else if ( this.exp != null )
+            return this.exp.getName();
+        return null;
+    }
+
+    public int getDimension() {
+        if ( this.lVal != null )
+            return this.lVal.getDimension();
+        else if ( this.exp != null )
+            return this.exp.getDimension();
+        return 0;
+    }
 }

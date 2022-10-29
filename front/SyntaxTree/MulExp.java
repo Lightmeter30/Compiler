@@ -35,4 +35,15 @@ public class MulExp implements TreeNode{
     public boolean isFuncCall() {
         return this.unaryExps.size() == 1 && this.unaryExps.get(0).isFuncCall();
     }
+
+    public String getName() {
+        if( !Ops.isEmpty() ) return null;
+        return this.unaryExps.get(0).getName();
+    }
+
+    public int getDimension() {
+        if( !Ops.isEmpty() )
+            return 0;
+        return this.unaryExps.get(0).getDimension();
+    }
 }

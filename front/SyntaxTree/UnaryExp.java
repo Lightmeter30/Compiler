@@ -37,4 +37,22 @@ public class UnaryExp implements TreeNode{
     public boolean isFuncCall() {
         return type == Type.FuncCall || this.type == Type.PrimaryExp && ((PrimaryExp) this.childNode.get(0)).isFuncCall();
     }
+    public String getFuncCallName(){
+        assert (type.equals(Type.FuncCall));
+        return ((Ident) childNode.get(0)).getName();
+    }
+
+    public String getName() {
+        if ( this.type == Type.PrimaryExp )
+            return ((PrimaryExp) this.childNode.get(0)).getName();
+        else if ( this.type == Type.FuncCall )
+            return ((Ident) this.childNode.get(0)).getName();
+        return null;
+    }
+
+    public int getDimension() {
+        if ( this.type != Type.PrimaryExp )
+            return 0;
+        return ((PrimaryExp) this.childNode.get(0)).getDimension();
+    }
 }

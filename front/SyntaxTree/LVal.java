@@ -18,4 +18,11 @@ public class LVal implements TreeNode{
         return this.childNode;
     }
 
+    public String getName() {
+        return this.ident.getName();
+    }
+
+    public int getDimension() {
+        return this.exps.size();
+    }
 }

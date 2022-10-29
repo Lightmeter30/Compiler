@@ -22,4 +22,12 @@ public class Exp implements TreeNode{
     public Integer getValue() {
         return addExp.getValue();
     }
+
+    public String getName(){
+        return this.addExp.getName();
+    }
+
+    public int getDimension() {
+        return this.addExp.getDimension();
+    }
 }

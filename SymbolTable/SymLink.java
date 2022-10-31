@@ -17,6 +17,7 @@ public class SymLink {
     private SymbolTable currentTable;
     private boolean isAssign = false;
     private String currentFuncName;
+    private int debug = 0;
     private enum BlockType{
         whileBlock, voidFuncBlock, intFuncBlock
     }
@@ -93,7 +94,7 @@ public class SymLink {
             int paramNum = 0;
             if(unaryExp.getChild().size() > 1)
                 paramNum = unaryExp.getChild().get(1).getChild().size();
-            if(item != null && ((Func) item).checkArgcNum(paramNum)){
+            if(item != null && !((Func) item).checkArgcNum(paramNum)){
                 System.out.println("mismatch of params!"); // may change
             }else{
                 // the paramsNum is ok
@@ -165,7 +166,6 @@ public class SymLink {
             SymbolItem item = findInSymbolTable(ident.getName(), ident, "Var", true, currentTable);
             nodeTableItem.put(ident,item);
         }
-
         for(TreeNode childNode: node.getChild()){
             // System.out.println();
             travel(childNode,null);

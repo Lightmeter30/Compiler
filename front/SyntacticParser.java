@@ -411,8 +411,10 @@ public class SyntacticParser implements Error {
             }
         }else if(Tools.isPrintf(WordlistIndex)){
             type = Stmt.Type.Output;
+            childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord();// '('
             SyntacticParser.ReadOneWord(); // FormatString
+            childNode.add(new FormatString((VarInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord(); // ','  ')'
             while(Tools.isCOMMA(WordlistIndex)){
                 SyntacticParser.ReadOneWord(); // Exp
@@ -545,10 +547,11 @@ public class SyntacticParser implements Error {
             SyntacticParser.ReadOneWord();// UnaryExp
             childNode.add(SyntacticParser.UnaryExp());
         }else if(Tools.isIdent(WordlistIndex)){ //函数调用或者PrimaryExp中存在LVal
-            type = UnaryExp.Type.FuncCall;
-            childNode.add(new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
+            // Ident
             SyntacticParser.ReadOneWord(); // '(' or other
             if(Tools.isLpar(WordlistIndex)){ // '('
+                type = UnaryExp.Type.FuncCall;
+                childNode.add(new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1)));
                 SyntacticParser.ReadOneWord();// ')' or FuncRParams
                 if(!Tools.isRpar(WordlistIndex)){// Not ')'
                     childNode.add(SyntacticParser.FuncRParams());
@@ -782,7 +785,7 @@ public class SyntacticParser implements Error {
         SyntacticParser.ReadOneWord();
 //        应该是'{'
         block = SyntacticParser.Block();
-        ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
+        ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1));
         SyntacticParser.NewParseInfo("<FuncDef>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<FuncDef>");
@@ -799,7 +802,7 @@ public class SyntacticParser implements Error {
         SyntacticParser.ReadOneWord();//')'
         SyntacticParser.ReadOneWord();//应该是'{'
         block = SyntacticParser.Block();
-        ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
+        ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1));
         SyntacticParser.NewParseInfo("<MainFuncDef>","");
         SyntacticParser.ReadOneWord();
         System.out.println("<MainFuncDef>");

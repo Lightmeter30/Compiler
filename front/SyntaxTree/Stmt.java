@@ -17,4 +17,8 @@ public class Stmt implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
+
+    public Type getType() {
+        return type;
+    }
 }

@@ -25,4 +25,8 @@ public class VarInfo extends WordInfo {
     public void setLineCounter(int lineCounter) {
         this.lineCounter = lineCounter;
     }
+
+    public String getString(){
+        return super.getWord().replaceAll("\"","");
+    }
 }

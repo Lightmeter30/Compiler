@@ -13,7 +13,7 @@ public class ErrorSymbol implements TreeNode{
 
     @Override
     public ArrayList<TreeNode> getChild() {
-        return null;
+        return new ArrayList<>();
     }
 
     public ConstInfo getToken() {

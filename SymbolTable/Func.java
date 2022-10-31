@@ -15,7 +15,7 @@ public class Func implements SymbolItem{
     }
     @Override
     public String getName() {
-        return null;
+        return name;
     }
 
     @Override

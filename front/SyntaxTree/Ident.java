@@ -1,5 +1,6 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
 import front.Word.ConstInfo;
 
 import java.util.ArrayList;
@@ -17,6 +18,12 @@ public class Ident implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        return null;
+    }
+
     public int getLineNum(){
         return this.lineNum;
     }

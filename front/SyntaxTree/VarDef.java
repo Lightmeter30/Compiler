@@ -1,5 +1,9 @@
 package front.SyntaxTree;
 
+import Mid.MidCode;
+import Mid.MidCodeList;
+import front.Error;
+
 import java.util.ArrayList;
 
 public class VarDef implements TreeNode{
@@ -25,11 +29,44 @@ public class VarDef implements TreeNode{
         this.childNode.add(ident);
         this.childNode.addAll(constExps);
         this.childNode.add(initVal);
-        this.setShape();
+        try {
+            this.setShape();
+        } catch (Error ignored) {
+            ignored.printStackTrace();
+        }
     }
     @Override
     public ArrayList<TreeNode> getChild() {
         return childNode;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        String name = ident.getName() + "@" + midCodeList.nodeTableItem.get(ident).getLoc();
+        if ( constExps.size() == 0 ) {
+            // not array
+            if( initVal != null ) {
+                String value = initVal.createMidCode(midCodeList);
+                midCodeList.add(MidCode.Op.VAR_DEF, name, value, "#NULL");
+            } else {
+                midCodeList.add(MidCode.Op.VAR_DEF, name, "#NULL", "#NULL");
+            }
+        } else {
+            if ( initVal != null ) {
+                String value = initVal.createMidCode(midCodeList);
+                assert value.equals("#ARRAY");
+                ArrayList<String> initValues = new ArrayList<>();
+                initVal.getInitValue(initValues,midCodeList);
+                int index = 0;
+                for (String res : initValues) {
+                    midCodeList.add(MidCode.Op.ARR_SAVE, name + "[" + index + "]", res, "#NULL");
+                    index++;
+                }
+            } else {
+                midCodeList.add(MidCode.Op.VAR_DEF, name, "#NULL", "#NULL");
+            }
+        }
+        return "";
     }
 
     public InitVal getInitVal() {
@@ -39,7 +76,7 @@ public class VarDef implements TreeNode{
     public int getDimension() {
         return this.dimension;
     }
-    private void setShape(){
+    private void setShape() throws Error{
         for(ConstExp exp: constExps)
             shape.add(exp.getValue());
     }

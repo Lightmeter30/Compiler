@@ -1,5 +1,8 @@
 package front.SyntaxTree;
 
+import front.Error;
+import Mid.MidCode;
+import Mid.MidCodeList;
 import front.Word.ConstInfo;
 
 import java.util.ArrayList;
@@ -18,7 +21,24 @@ public class AddExp implements TreeNode{
         return childNode;
     }
 
-    public Integer getValue() {
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        try{
+            return Integer.toString(this.getValue());
+        } catch (Error ignored){
+        }
+        String op1 = mulExps.get(0).createMidCode(midCodeList);
+        String result = op1;
+        for(int i = 0;i < Ops.size();i++){
+            String op2 = mulExps.get(i + 1).createMidCode(midCodeList);
+            MidCode.Op op = Ops.get(i).getWord().equals("+") ? MidCode.Op.ADD : MidCode.Op.SUB;
+            result = midCodeList.add(op,op1,op2,"#TEMP");
+            op1 = result;
+        }
+        return result;
+    }
+
+    public Integer getValue() throws Error{
         int value = mulExps.get(0).getValue();
         for(int index = 1;index < mulExps.size(); index++){
             if(Ops.get(index - 1).getWord().equals("+"))

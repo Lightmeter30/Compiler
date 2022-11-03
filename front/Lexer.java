@@ -7,7 +7,7 @@ import front.Word.WordInfo;
 import java.io.*;
 import java.util.ArrayList;
 
-public class Lexer implements Error {
+public class Lexer {
     public static int lineNum = 1;
     public static int ch; //现在读取的字符
     public static boolean isRetract = false;
@@ -19,7 +19,6 @@ public class Lexer implements Error {
             String pathName = "testfile.txt"; //文档相对路径
             File file = new File(pathName);
             reader = new InputStreamReader(new FileInputStream(file));
-            Error error = new Lexer();//错误
             while(getChar() != -1){
                 // 对于windows下，\r\n这两个字符在一起时，表示一个换行。
                 // 但如果这两个字符分开显示时，会换两次行。
@@ -54,7 +53,7 @@ public class Lexer implements Error {
                             if(Tools.isNormalChar((char) ch) && !isMod ){
                                 token.append((char) ch);
                                 if( is_n && ch != 'n')
-                                    error.SolveError(0);// \后面不是n的错误
+                                    System.out.println("error");// \后面不是n的错误
                                 else if(is_n)
                                     is_n = false;
                                 if( ch == '\\' )
@@ -67,12 +66,12 @@ public class Lexer implements Error {
                                 formatCharNum++;
                                 isMod = false;
                             }else if(isMod){
-                                error.SolveError(0);//不是%d的错误，暂定与出现非NormalChar字符错误一致
+                                System.out.println("error");//不是%d的错误，暂定与出现非NormalChar字符错误一致
                             }else if( Tools.isEnter((char) ch)){
                                 lineNum++;
-                                error.SolveError(0);//出现换行
+                                System.out.println("error");//出现换行
                             }else if( ch == -1 ){
-                                error.SolveError(0); //已经结束力！
+                                System.out.println("error");//已经结束力！
                             }
                             if( ch == -1 ) break; //先看看问题吧
                             getChar();
@@ -95,14 +94,14 @@ public class Lexer implements Error {
                         if( Tools.isAnd((char) ch)){
                             NewWordInfo("&&","AND");
                         }else{
-                            error.SolveError(0);// &不能单独出现，错误码为;
+                            System.out.println("error");// &不能单独出现，错误码为;
                         }
                     }else if(Tools.isOr((char) ch)){// |(OR)
                         getChar();
                         if( Tools.isOr((char) ch)){
                             NewWordInfo("||","OR");
                         }else{
-                            error.SolveError(0);// |不能单独出现，错误码为;
+                            System.out.println("error");// |不能单独出现，错误码为;
                         }
                     }else if(Tools.isPlus((char) ch)){// +
                         NewWordInfo("+","PLUS");
@@ -179,7 +178,7 @@ public class Lexer implements Error {
                     }else if(Tools.isEnter((char) ch)){
                         lineNum++;  //每读到一次\n就行数加1
                     }else{
-                        error.SolveError(0);//出现无法识别的字符
+                        //error.SolveError(0);//出现无法识别的字符
                         reader.close();
                         return;
                     }
@@ -288,13 +287,5 @@ public class Lexer implements Error {
                 NewWordInfo(word, "IDENFR");
                 break;
         }
-    }
-    /*
-    * @author: takune
-    * 处理词法错误，可以之后再完善
-    * */
-    public int SolveError(int errorCode){
-        System.out.println("the errorcode is " + errorCode );
-        return errorCode;
     }
 }

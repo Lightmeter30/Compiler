@@ -9,25 +9,21 @@ import front.SyntaxTree.*;
 
 import java.util.ArrayList;
 
-public class SyntacticParser implements Error {
+public class SyntacticParser{
     public static int WordlistNum = Lexer.Wordlist.size();
     public static int WordlistIndex = -1; //WordlistIndex表示当前读到的单词的下标
-    public static Error e = new SyntacticParser();
     public static int BlockType = -1; //当前Block块的属性
     public static CompUnit TreeRoot;
+    public static boolean branch_opt = false;
     //不需要输出<BlockItem>, <Decl>, <BType>
     public static void SyntacticParse(){
         try{
         SyntacticParser.ReadOneWord();
         TreeRoot = SyntacticParser.CompUnit();
-        Lexer.OutputWordList();
+//        Lexer.OutputWordList();
         }catch (Exception e){
             e.printStackTrace();
         }
-    }
-    public int SolveError(int errorCode){
-        System.out.println("the errorcode is " + errorCode );
-        return errorCode;
     }
     public static boolean ReadOneWord(){
         if( WordlistIndex < WordlistNum ){
@@ -61,7 +57,7 @@ public class SyntacticParser implements Error {
             mainFuncDef = SyntacticParser.MainFuncDef();
         }
         else
-            e.SolveError(1);//没有main函数的错误
+            System.out.println("error");//没有main函数的错误
         SyntacticParser.NewParseInfo("<CompUnit>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<CompUnit>");
@@ -77,17 +73,17 @@ public class SyntacticParser implements Error {
             temp =  SyntacticParser.ConstDecl();
             SyntacticParser.NewParseInfo("<Decl>","NoOutput");
             SyntacticParser.ReadOneWord();
-            System.out.println("<Decl>");
+//            System.out.println("<Decl>");
             return new Decl(temp);
         } else if(Tools.isVarDecl(WordlistIndex)) {
             VarDecl temp;
             temp = SyntacticParser.VarDecl();
             SyntacticParser.NewParseInfo("<Decl>","NoOutput");
             SyntacticParser.ReadOneWord();
-            System.out.println("<Decl>");
+//            System.out.println("<Decl>");
             return new Decl(temp);
         } else
-            e.SolveError(1);//不是Decl
+            System.out.println("error");//不是Decl
         return null;
     }
     /*
@@ -133,7 +129,7 @@ public class SyntacticParser implements Error {
             SyntacticParser.ReadOneWord();//此时为[或=
             arrayDimension++;
         }
-        if(arrayDimension > 2) e.SolveError(1); //最多为二维数组
+        if(arrayDimension > 2) System.out.println("error"); //最多为二维数组
         SyntacticParser.ReadOneWord();//此时应该为ConstInitial的首个单词
         constInitVal =  SyntacticParser.ConstInitVal();
         SyntacticParser.NewParseInfo("<ConstDef>","");
@@ -210,7 +206,7 @@ public class SyntacticParser implements Error {
             SyntacticParser.ReadOneWord();
             arrayDimension++;
         }
-        if(arrayDimension > 2) e.SolveError(1);
+        if(arrayDimension > 2) System.out.println("error");
         if(Tools.isEqu(WordlistIndex)){
             SyntacticParser.ReadOneWord();
             initVal =  SyntacticParser.InitVal();
@@ -404,6 +400,7 @@ public class SyntacticParser implements Error {
             SyntacticParser.ReadOneWord();//';'
         }else if(Tools.isReturn(WordlistIndex)){
             type = Stmt.Type.ReturnStmt;
+            childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord();//';' Exp
             if(!Tools.isSEMI(WordlistIndex)){
                 childNode.add(SyntacticParser.Exp());
@@ -516,7 +513,7 @@ public class SyntacticParser implements Error {
             SyntacticParser.ReadOneWord();
             return new PrimaryExp(lval);
         }else
-            e.SolveError(1);
+            System.out.println("error");
 //        System.out.println("<PrimaryExp>");
         return null; // may change
     }
@@ -566,7 +563,7 @@ public class SyntacticParser implements Error {
             type = UnaryExp.Type.PrimaryExp;
             childNode.add(SyntacticParser.PrimaryExp());
         }else
-            e.SolveError(1);
+            System.out.println("error");
         SyntacticParser.NewParseInfo("<UnaryExp>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<UnaryExp>");
@@ -805,7 +802,7 @@ public class SyntacticParser implements Error {
         ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1));
         SyntacticParser.NewParseInfo("<MainFuncDef>","");
         SyntacticParser.ReadOneWord();
-        System.out.println("<MainFuncDef>");
+//        System.out.println("<MainFuncDef>");
         return new MainFuncDef(block,blockEnd);
     }
     /*

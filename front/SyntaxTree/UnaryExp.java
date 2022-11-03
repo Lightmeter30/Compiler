@@ -1,5 +1,9 @@
 package front.SyntaxTree;
 
+import front.Error;
+import Mid.MidCode;
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class UnaryExp implements TreeNode{
@@ -17,7 +21,39 @@ public class UnaryExp implements TreeNode{
         //need change?
         return childNode;
     }
-    public Integer getValue() {
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        try {
+            return Integer.toString(this.getValue());
+        } catch (Error ignored) {
+        }
+        if( this.type.equals(Type.UnaryExp) ) {
+            String type = ((UnaryOp) childNode.get(0)).getType();
+            MidCode.Op op = type.equals("PLUS") ? MidCode.Op.ADD :
+                    type.equals("MINU") ? MidCode.Op.SUB : MidCode.Op.NOT;
+            if(op.equals(MidCode.Op.NOT)) {
+                return midCodeList.add(MidCode.Op.SET, this.childNode.get(1).createMidCode(midCodeList) + " 0", "==", "#TEMP");
+            } else {
+                return midCodeList.add(op, "0", this.childNode.get(1).createMidCode(midCodeList), "#TEMP");
+            }
+        } else if( this.type.equals(Type.FuncCall) ) {
+            String funcName = ((Ident) this.childNode.get(0)).getName();
+            midCodeList.add(MidCode.Op.PREPARE_CALL, funcName, "#NULL", "#NULL");
+            if( childNode.size() > 1 ) {
+                for(Exp exp: ((FuncRParams) this.childNode.get(1)).exps) {
+                    String name = exp.createMidCode(midCodeList);
+                    midCodeList.add(MidCode.Op.PUSH_PARA, name, funcName, "#NULL");
+                }
+            }
+            midCodeList.add(MidCode.Op.CALL,funcName, "#NULL", "#NULL");
+            // TODO return value pass by %RET or void
+            return midCodeList.add(MidCode.Op.ADD, "%RTX", "0", "#TEMP");
+        }
+        return this.childNode.get(0).createMidCode(midCodeList);
+    }
+
+    public Integer getValue() throws Error {
         if(type == Type.PrimaryExp){
             return ((PrimaryExp) this.childNode.get(0)).getValue();
         }else if(type == Type.UnaryExp){
@@ -32,7 +68,8 @@ public class UnaryExp implements TreeNode{
                     return 0;
             }
         }
-        return null;// may change
+        // FUNC_CALL
+        throw new Error('n', -1);
     }
     public boolean isFuncCall() {
         return type == Type.FuncCall || this.type == Type.PrimaryExp && ((PrimaryExp) this.childNode.get(0)).isFuncCall();

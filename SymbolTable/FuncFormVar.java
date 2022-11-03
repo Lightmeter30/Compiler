@@ -7,11 +7,12 @@ public class FuncFormVar implements SymbolItem{
     private int dimension;
     private ArrayList<Integer> shape;
     public int addr;
-
-    public FuncFormVar(String name, int dimension, ArrayList<Integer> shape){
+    public String loc;
+    public FuncFormVar(String name, int dimension, ArrayList<Integer> shape,String loc){
         this.name = name;
         this.dimension = dimension;
         this.shape = shape;
+        this.loc = loc;
     }
 
     @Override
@@ -35,6 +36,10 @@ public class FuncFormVar implements SymbolItem{
         return this.addr + 4;
     }
 
+    public String getUniqueName(){
+        return this.name + "@" + this.loc;
+    }
+
     @Override
     public int getAddr() {
         return this.addr;
@@ -42,7 +47,13 @@ public class FuncFormVar implements SymbolItem{
     public int getDimension(){
         return this.dimension;
     }
+
     public ArrayList<Integer> getShape(){
         return shape;
+    }
+
+    @Override
+    public String getLoc(){
+        return this.loc;
     }
 }

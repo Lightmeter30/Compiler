@@ -1,6 +1,6 @@
 package front;
 
-public interface Error {
+public class Error extends Exception{
     /*************************************************************************************************
      * @param errorCode
      * @return
@@ -18,6 +18,25 @@ public interface Error {
      *      k               107                 缺少右中括号’]’(缺少右中括号前一个非终结符所在行)
      *      l               108                 printf中'%d'数量宇表达式个数不匹配(printf所在行)
      *      m               109                 在非循环模块使用break | continue(break | continue所在行)
+     *      n               110                 其他错误
      ****************************************************************************************************/
-    int SolveError(int errorCode);
+    public char errorType;
+    public int lineCount;
+
+    public Error(char errorType, int lineCount) {
+        this.errorType = errorType;
+        this.lineCount = lineCount;
+    }
+
+    @Override
+    public String toString(){
+        return lineCount + " " + errorType;
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        if(!(obj instanceof Error)) return false;
+        Error error = (Error) obj;
+        return error == this || error.toString().equals(this.toString());
+    }
 }

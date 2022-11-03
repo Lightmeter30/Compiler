@@ -1,5 +1,6 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
 import front.Word.VarInfo;
 
 import java.util.ArrayList;
@@ -15,6 +16,11 @@ public class FormatString implements TreeNode{
     @Override
     public ArrayList<TreeNode> getChild() {
         return childNode;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        return null;
     }
 
     public int getFormatStringNum(){

@@ -1,5 +1,7 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class FuncFParams implements TreeNode{
@@ -14,6 +16,12 @@ public class FuncFParams implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return childNode;
     }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        return null;
+    }
+
     public ArrayList<FuncFParam> getFuncFParams(){
         return funcFParams;
     }

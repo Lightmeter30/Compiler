@@ -6,6 +6,8 @@ public interface SymbolItem {
     int getSize();
     int setAddr(int addr);
     int getAddr();
+
+    String getLoc();
 //    private String name;    //名字
 //    private short type;       //符号类型
 //    private int address;    //地址

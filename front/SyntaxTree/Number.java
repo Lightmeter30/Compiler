@@ -1,5 +1,7 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class Number implements TreeNode{
@@ -13,6 +15,11 @@ public class Number implements TreeNode{
     @Override
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        return null;
     }
 
     public Integer getValue() {

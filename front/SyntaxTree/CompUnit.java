@@ -1,5 +1,7 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class CompUnit implements TreeNode{
@@ -18,5 +20,13 @@ public class CompUnit implements TreeNode{
     @Override
     public ArrayList<TreeNode> getChild(){
         return childNodes;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        for(TreeNode node: childNodes) {
+            node.createMidCode(midCodeList);
+        }
+        return "";
     }
 }

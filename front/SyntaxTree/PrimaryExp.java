@@ -1,5 +1,8 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
+import front.Error;
+
 import java.util.ArrayList;
 
 public class PrimaryExp implements TreeNode{
@@ -37,17 +40,31 @@ public class PrimaryExp implements TreeNode{
         return this.childNode;
     }
 
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        try {
+            return Integer.toString(this.getValue());
+        } catch (Error ignored) {
+        }
+        if ( this.exp != null )
+            return exp.createMidCode(midCodeList);
+        else if( this.lVal !=null )
+            return lVal.createMidCode(midCodeList);
+        return Integer.toString(this.number.getValue());
+    }
+
     public boolean isFuncCall() {
         return this.exp != null && this.exp.isFuncCall();
     }
 
-    public Integer getValue() {
+    public Integer getValue() throws Error {
         if(this.number != null){
             return number.getValue();
         }else if(this.exp != null){
             return this.exp.getValue();
         }
-        return null;
+        throw new Error('n', -1);
+        // return -114514;
     }
 
     public String getName() {

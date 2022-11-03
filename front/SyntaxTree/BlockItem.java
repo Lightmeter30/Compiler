@@ -1,5 +1,7 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class BlockItem implements TreeNode{
@@ -19,5 +21,14 @@ public class BlockItem implements TreeNode{
     @Override
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        if( this.decl != null )
+            this.decl.createMidCode(midCodeList);
+        else
+            this.stmt.createMidCode(midCodeList);
+        return "";
     }
 }

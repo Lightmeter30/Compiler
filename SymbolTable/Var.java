@@ -14,23 +14,30 @@ public class Var implements SymbolItem{
     public int addr;
     private int dimension;
     private ArrayList<Integer> shape;
-    public Var(String name, boolean isConst, int dimension, InitVal initVal, ArrayList<Integer> shape){
+    public String loc;
+    public Var(String name, boolean isConst, int dimension, InitVal initVal, ArrayList<Integer> shape, String loc){
         this.name = name;
         this.isConst = isConst;
         this.initVal = initVal;
         this.dimension = dimension;
         this.shape = shape;
+        this.loc = loc;
     }
-    public Var(String name, boolean isConst, int dimension, ConstInitVal constInitVal, ArrayList<Integer> shape){
+    public Var(String name, boolean isConst, int dimension, ConstInitVal constInitVal, ArrayList<Integer> shape, String loc){
         this.name = name;
         this.isConst = isConst;
         this.constInitVal = constInitVal;
         this.dimension = dimension;
         this.shape = shape;
+        this.loc = loc;
     }
     @Override
     public String getName() {
         return name;
+    }
+
+    public String getUniqueName(){
+        return this.name + "@" + this.loc;
     }
 
     @Override
@@ -64,7 +71,13 @@ public class Var implements SymbolItem{
     public int getDimension(){
         return this.dimension;
     }
+
     public ArrayList<Integer> getShape(){
         return this.shape;
+    }
+
+    @Override
+    public String getLoc(){
+        return this.loc;
     }
 }

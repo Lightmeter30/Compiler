@@ -1,5 +1,8 @@
 package front.SyntaxTree;
 
+import Mid.MidCode;
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class MainFuncDef implements TreeNode{
@@ -15,6 +18,14 @@ public class MainFuncDef implements TreeNode{
     @Override
     public ArrayList<TreeNode> getChild() {
         return childNode;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        midCodeList.add(MidCode.Op.FUNC, "int", "main", "#NULL");
+        this.block.createMidCode(midCodeList);
+        midCodeList.add(MidCode.Op.END_FUNC, "int", "main", "#NULL");
+        return null;
     }
 
 }

@@ -8,14 +8,20 @@ public class Func implements SymbolItem{
     private int argcNum;
     private Type type;
     private int addr;
-    public Func(String name, Type type, int argcNum){
+    public String loc;
+    public Func(String name, Type type, int argcNum, String loc){
         this.name = name;
         this.type = type;
         this.argcNum = argcNum;
+        this.loc = loc;
     }
     @Override
     public String getName() {
         return name;
+    }
+
+    public String getUniqueName(){
+        return this.name;
     }
 
     @Override
@@ -45,5 +51,10 @@ public class Func implements SymbolItem{
 
     public Type getType(){
         return type;
+    }
+
+    @Override
+    public String getLoc(){
+        return this.loc;
     }
 }

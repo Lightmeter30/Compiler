@@ -2,6 +2,7 @@ package SymbolTable;
 
 import front.SyntaxTree.*;
 import front.Word.ConstInfo;
+import front.Error;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.HashMap;
 public class SymLink {
     private final TreeNode root;
     private final HashMap<String, SymbolTable> symbolTables = new HashMap<>(); //存储着所有的符号表
-    private final HashMap<TreeNode,SymbolItem> nodeTableItem = new HashMap<>();
+    public final HashMap<TreeNode,SymbolItem> nodeTableItem = new HashMap<>();
     private final HashMap<String, SymbolTable> funcTables = new HashMap<>();
     private int currentDepth;
     private final int[] depths = new int[100];
@@ -29,10 +30,14 @@ public class SymLink {
         }
     }
     public void buildSymbolTable(){
-        rootTable = new SymbolTable(new int[]{0,0},null);
-        currentTable = rootTable;
-        symbolTables.put("<0_0>",currentTable);
-        travel(root,null);
+        try {
+            rootTable = new SymbolTable(new int[]{0,0},null);
+            currentTable = rootTable;
+            symbolTables.put("<0_0>",currentTable);
+            travel(root,null);
+        } catch (Error ignored) {
+            ignored.printStackTrace();
+        }
     }
     private void travel(TreeNode node, TreeNode funcFormalArgs) throws Error{
         if( node == null ) {
@@ -58,7 +63,7 @@ public class SymLink {
             for(TreeNode childNode: varDef.getChild()){
                 travel(childNode,null);
             } // may change
-            SymbolItem item = new Var(name,false,varDef.getDimension(),varDef.getInitVal(),varDef.getShape());
+            SymbolItem item = new Var(name,false,varDef.getDimension(),varDef.getInitVal(),varDef.getShape(),getLoc());
             currentTable.symbolList.add(item);
             nodeTableItem.put(varDef.ident, item);
             return;
@@ -69,7 +74,7 @@ public class SymLink {
             for(TreeNode childNode: constDef.getChild()){
                 travel(childNode,null);
             } // may change
-            SymbolItem item = new Var(name, true, constDef.getDimension(),constDef.getConstInitVal(),constDef.getShape());
+            SymbolItem item = new Var(name, true, constDef.getDimension(),constDef.getConstInitVal(),constDef.getShape(),getLoc());
             currentTable.symbolList.add(item);
             nodeTableItem.put(constDef.getIdent(),item);
             return;
@@ -79,7 +84,7 @@ public class SymLink {
             checkTable(name,funcDef.getIdent(),"Func");
             Integer argc = funcDef.getArgc();
             Func.Type type = funcDef.getFuncType().getType().equals(FuncType.Type.Int) ? Func.Type.intFunc : Func.Type.voidFunc;
-            SymbolItem item = new Func(name,type,argc);
+            SymbolItem item = new Func(name,type,argc,getLoc());
             currentTable.symbolList.add(item);
             nodeTableItem.put(funcDef.getIdent(),item);
             currentFuncName = name;
@@ -223,7 +228,7 @@ public class SymLink {
             return findInSymbolTable(name, ident, type, checkError, currentTable.fatherTable);
         }
         if(checkError)
-            System.out.println("checkError!!!");//may error
+            System.out.println("checkError!!!");//may change
         return null;
     }
 
@@ -233,7 +238,7 @@ public class SymLink {
             String name = param.getName();
             checkTable(name, param.ident, "Var");
             int dimension = param.getDimension();
-            FuncFormVar funcFormVar = new FuncFormVar(name,dimension,param.getShape());
+            FuncFormVar funcFormVar = new FuncFormVar(name,dimension,param.getShape(),getLoc());
             currentTable.symbolList.add(funcFormVar);
         }
     }
@@ -266,6 +271,13 @@ public class SymLink {
                 ((PrimaryExp) node).value = value;
             }
         }
+    }
+    private String getLoc(){
+        return "<" + currentDepth + "_" + (depths[currentDepth] > 0 ? depths[currentDepth] - 1 : 0) + ">";
+    }
+
+    public HashMap<String, SymbolTable> getFuncTables(){
+        return this.funcTables;
     }
 
     public HashMap<String, SymbolTable> getSymbolTables() {

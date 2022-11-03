@@ -1,5 +1,6 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
 import front.Word.ConstInfo;
 
 import java.util.ArrayList;
@@ -15,6 +16,12 @@ public class UnaryOp implements TreeNode{
     public ArrayList<TreeNode> getChild() {
         return this.childNode;
     }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        return null;
+    }
+
     @Override
     public String toString(){
         return token.getWord();

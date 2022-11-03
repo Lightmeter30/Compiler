@@ -1,5 +1,7 @@
 package front.SyntaxTree;
 
+import Mid.MidCodeList;
+
 import java.util.ArrayList;
 
 public class ConstDecl implements TreeNode{
@@ -15,5 +17,13 @@ public class ConstDecl implements TreeNode{
     @Override
     public ArrayList<TreeNode> getChild() {
         return childNodes;
+    }
+
+    @Override
+    public String createMidCode(MidCodeList midCodeList) {
+        for(ConstDef constDef: constDefs) {
+            constDef.createMidCode(midCodeList);
+        }
+        return "";
     }
 }

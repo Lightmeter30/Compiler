@@ -37,7 +37,7 @@ public class LVal implements TreeNode{
         if( !exps.isEmpty() ) {
             //24岁,是数组
             if(shape.size() > 1 && shape.size() == exps.size()) {
-                //二维数组;
+                //二维数组; shape == exps == 2
                 String x = exps.get(0).createMidCode(midCodeList);
                 String y = exps.get(1).createMidCode(midCodeList);
                 String base;
@@ -52,16 +52,18 @@ public class LVal implements TreeNode{
                     name += "[" + midCodeList.add(MidCode.Op.ADD,y,base, "#TEMP") + "]";
                 }
             } else {
-                //24岁,是一维数组
+                //24岁,是一维数组 exps == 1
                 String index = exps.get(0).createMidCode(midCodeList);
-                if ( index.contains("[")) {
+                if ( index.contains("[") && shape.size() == 1 ) {
                     index = midCodeList.add(MidCode.Op.ARR_LOAD, "#TEMP", index, "#NULL");
                 }
-                if( shape.get(0) == -1 )
+                if ( shape.size() == 2 ) {
+                    // 2 1
                     midCodeList.add(MidCode.Op.SIGNAL_ARR_ADDR, "#NULL", "#NULL", "#NULL");
+                }
                 name += "[" + index + "]";
             }
-        } else if( !shape.isEmpty() && shape.get(0) != -1 )
+        } else if( !shape.isEmpty() ) //(exp == 0,说明不能是array[]的形式,array是二维数组)
             midCodeList.add(MidCode.Op.SIGNAL_ARR_ADDR, "#NULL", "#NULL", "#NULL");
         return name;
     }

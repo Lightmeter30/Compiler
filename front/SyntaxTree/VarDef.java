@@ -12,7 +12,6 @@ public class VarDef implements TreeNode{
     private InitVal initVal;
     private ArrayList<TreeNode> childNode = new ArrayList<>();
     private int dimension;
-    private ArrayList<Integer> shape = new ArrayList<>();
     public VarDef(Ident ident, int dimension, ArrayList<ConstExp> constExps){
         this.ident = ident;
         this.dimension = dimension;
@@ -29,11 +28,6 @@ public class VarDef implements TreeNode{
         this.childNode.add(ident);
         this.childNode.addAll(constExps);
         this.childNode.add(initVal);
-        try {
-            this.setShape();
-        } catch (Error ignored) {
-            ignored.printStackTrace();
-        }
     }
     @Override
     public ArrayList<TreeNode> getChild() {
@@ -76,11 +70,11 @@ public class VarDef implements TreeNode{
     public int getDimension() {
         return this.dimension;
     }
-    private void setShape() throws Error{
+
+    public ArrayList<Integer> getShape() throws Error{
+        ArrayList<Integer> shape = new ArrayList<>();
         for(ConstExp exp: constExps)
             shape.add(exp.getValue());
-    }
-    public ArrayList<Integer> getShape() throws Error{
-        return this.shape;
+        return shape;
     }
 }

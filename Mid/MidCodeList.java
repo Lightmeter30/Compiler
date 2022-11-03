@@ -92,6 +92,8 @@ public class MidCodeList {
         }
         if ( operand1.equals("#TEMP") ) {
             operand1 = "#T" + tmpIndex;
+            if (operation.equals(MidCode.Op.ASSIGN) || operation.equals(MidCode.Op.ARR_LOAD)) // may change
+                end = operand1;
             tmpIndex += 1;
         }
         if ( operand2.equals("#STRCONS") ) {

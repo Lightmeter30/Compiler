@@ -36,6 +36,7 @@ public class Var implements SymbolItem{
         return name;
     }
 
+    @Override
     public String getUniqueName(){
         return this.name + "@" + this.loc;
     }

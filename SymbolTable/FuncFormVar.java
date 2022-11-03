@@ -36,6 +36,7 @@ public class FuncFormVar implements SymbolItem{
         return this.addr + 4;
     }
 
+    @Override
     public String getUniqueName(){
         return this.name + "@" + this.loc;
     }

@@ -20,6 +20,7 @@ public class Func implements SymbolItem{
         return name;
     }
 
+    @Override
     public String getUniqueName(){
         return this.name;
     }

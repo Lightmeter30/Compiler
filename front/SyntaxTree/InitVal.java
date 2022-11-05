@@ -24,9 +24,9 @@ public class InitVal implements TreeNode{
     public String createMidCode(MidCodeList midCodeList) {
         String value = "";
         if( this.type.equals(Type.Exp) ) {
-            value = Integer.toString(((Exp) childNode.get(0)).getValue());
-            if ( value != null ) // const initVal
-                return value;
+            Integer tryValue = ((Exp) childNode.get(0)).getValue();
+            if ( tryValue != null ) // const initVal
+                return tryValue.toString();
             value = (childNode.get(0)).createMidCode(midCodeList);
         } else
             return "#ARRAY";

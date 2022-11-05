@@ -53,7 +53,7 @@ public class UnaryExp implements TreeNode{
         return this.childNode.get(0).createMidCode(midCodeList);
     }
 
-    public Integer getValue() throws Error {
+    public int getValue() throws Error {
         if(type == Type.PrimaryExp){
             return ((PrimaryExp) this.childNode.get(0)).getValue();
         }else if(type == Type.UnaryExp){

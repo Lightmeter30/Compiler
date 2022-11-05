@@ -179,7 +179,8 @@ public class Mips {
                 case CALL:
                     prepareCnt.pop();
                     ArrayList<Integer> savedS = new ArrayList<>(), savedT = new ArrayList<>();
-                    ArrayList<String> oldT = (ArrayList<String>) registerT.clone();
+                    ArrayList<String> oldT = new ArrayList<>(); // (ArrayList<String>) registerT.clone()
+                    oldT.addAll(registerT);
                     for(int i = 0;i < registerT.size();i++) {
                         if( !registerT.get(i).equals("#NULL") ) {
                             savedT.add(i);
@@ -187,7 +188,8 @@ public class Mips {
                             registerT.set(i, "#NULL");
                         }
                     }
-                    ArrayList<String> oldS = (ArrayList<String>) registerS.clone();
+                    ArrayList<String> oldS = new ArrayList<>();
+                    oldS.addAll(registerS);
                     for(int i = 0;i < registerS.size();i++) {
                         if( !registerS.get(i).equals("#NULL") ) {
                             savedS.add(i);
@@ -246,8 +248,8 @@ public class Mips {
                     String Reg1 = "$a1";
                     String Reg2 = "$a2";
                     boolean a_in_reg = isInRegister(result) || setRegister(result, false);
-                    boolean b_in_reg_or_const = isInRegister(operand1) || isInRegister(operand1) || setRegister(operand1, true);
-                    boolean c_in_reg_or_const = isInRegister(operand2) || isInRegister(operand2) || setRegister(operand2, true);
+                    boolean b_in_reg_or_const = isConst(operand1) || isInRegister(operand1) || setRegister(operand1, true);
+                    boolean c_in_reg_or_const = isConst(operand2) || isInRegister(operand2) || setRegister(operand2, true);
 
                     String aa = operandToAddr(result);
                     String bb = operandToAddr(operand1);
@@ -623,8 +625,8 @@ public class Mips {
         }
         addOneMipsCode(operation + " " + num1 + ", " + num2 + ", " + num3);
         if( !isRelease ) return;
-        if( operation.equals("addu") || operation.equals("subu") || operation.equals("mul") || operation.equals("div") || operation.equals("sll") || operation.equals("sra") ) {
-            // addu, subu, mul, div, sll, sra
+        if( operation.equals("addu") || operation.equals("subu") || operation.equals("mul") || operation.equals("div") || operation.equals("sll") || operation.equals("sra") || operation.equals("sub") || operation.equals("add")) {
+            // addu, subu, mul, div, sll, sra, sub, add
             if( !num1.equals(num2) )
                 release(num2);
             if( !num1.equals(num3) )

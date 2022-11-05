@@ -57,11 +57,16 @@ public class PrimaryExp implements TreeNode{
         return this.exp != null && this.exp.isFuncCall();
     }
 
-    public Integer getValue() throws Error {
+    public int getValue() throws Error {
+        if(this.value != null ) {
+            return Integer.parseInt(value);
+        }
         if(this.number != null){
             return number.getValue();
         }else if(this.exp != null){
-            return this.exp.getValue();
+            Integer value = this.exp.getValue();
+            if(value != null)
+                return this.exp.getValue();
         }
         throw new Error('n', -1);
         // return -114514;

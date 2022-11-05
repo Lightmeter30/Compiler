@@ -47,8 +47,11 @@ public class MulExp implements TreeNode{
                 value = value * unaryExps.get(index).getValue();
             else if(Ops.get(index - 1).getWord().equals("/"))
                 value = value / unaryExps.get(index).getValue();
-            else
+            else {
+                System.out.println(unaryExps.get(index).toString());
                 value = value % unaryExps.get(index).getValue();
+            }
+
         }
         return value;
     }

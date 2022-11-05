@@ -5,7 +5,9 @@ import front.Word.ConstInfo;
 import front.Error;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 public class SymLink {
     private final TreeNode root;
@@ -14,11 +16,12 @@ public class SymLink {
     private final HashMap<String, SymbolTable> funcTables = new HashMap<>();
     private int currentDepth;
     private final int[] depths = new int[100];
-    private SymbolTable rootTable;
+    public SymbolTable rootTable;
     private SymbolTable currentTable;
     private boolean isAssign = false;
     private String currentFuncName;
     private int debug = 0;
+    private int addr;
     private enum BlockType{
         whileBlock, voidFuncBlock, intFuncBlock
     }
@@ -29,6 +32,32 @@ public class SymLink {
             depths[i] = 0;
         }
     }
+
+    public HashMap<String, ArrayList<SymbolItem>> getFuncTable(){
+        HashMap<String, ArrayList<SymbolItem>> result = new HashMap<>();
+        for(Map.Entry<String,SymbolTable> item : funcTables.entrySet()){
+            String funcName = item.getKey();
+            SymbolTable curTable = item.getValue();
+            ArrayList<SymbolItem> table = new ArrayList<>();
+            addr = 4;
+            addAllTableItemInTable(table, curTable);
+            //table.sort(Comparator.comparing(a -> a.getAddr()));
+            result.put(funcName, table);
+        }
+        return result;
+    }
+
+    private void addAllTableItemInTable(ArrayList<SymbolItem> tableItemList, SymbolTable table){
+        for(SymbolItem item : table.symbolList) {
+            addr = item.setAddr(addr);
+            tableItemList.add(item);
+        }
+        if( table.sonTable.size() != 0 ) {
+            for(SymbolTable sonTable : table.sonTable)
+                addAllTableItemInTable(tableItemList,sonTable);
+        }
+    }
+
     public void buildSymbolTable(){
         try {
             rootTable = new SymbolTable(new int[]{0,0},null);
@@ -39,11 +68,14 @@ public class SymLink {
             ignored.printStackTrace();
         }
     }
+//    public HashMap<String,ArrayList<SymbolItem>> getFuncTable()
+
     private void travel(TreeNode node, TreeNode funcFormalArgs) throws Error{
         if( node == null ) {
             return;
         }else if( node instanceof MainFuncDef ) {
 //            System.out.println("It's MainFuncDef!");
+            //main是否加入其中 may change
             currentFuncName = "main";
         }else if(node instanceof Block) {
             currentDepth++;
@@ -55,6 +87,10 @@ public class SymLink {
             if(funcFormalArgs != null ){
                 funcTables.put(currentFuncName, currentTable);
                 addFuncFormalArgs(funcFormalArgs);
+            }
+            if(currentFuncName.equals("main")) {
+                funcTables.put(currentFuncName, currentTable);
+                currentFuncName = "_main_block_";
             }
         }else if(node instanceof VarDef){
             VarDef varDef = (VarDef) node;

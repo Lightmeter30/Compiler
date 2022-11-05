@@ -92,7 +92,7 @@ public class MidCodeList {
         }
         if ( operand1.equals("#TEMP") ) {
             operand1 = "#T" + tmpIndex;
-            if (operation.equals(MidCode.Op.ASSIGN) || operation.equals(MidCode.Op.ARR_LOAD)) // may change
+            if (operation.equals(MidCode.Op.ASSIGN) || operation.equals(MidCode.Op.ARR_LOAD) || operation.equals(MidCode.Op.GETINT)) // may change
                 end = operand1;
             tmpIndex += 1;
         }
@@ -104,7 +104,7 @@ public class MidCodeList {
         midCodes.add(new MidCode(operation, operand1, operand2, end));
         if ( operation.equals(MidCode.Op.FUNC) && !operand2.equals("main") ) {
             for (SymbolItem item: currentFuncTable.get(operand2).symbolList) {
-                if ( item instanceof FuncFormVar && ((FuncFormVar) item).getDimension() == 0 )
+                if ( item instanceof FuncFormVar && ((FuncFormVar) item).getDimension() == 0 ) // may change
                     this.add(MidCode.Op.FUNC_FORM_VAR_DEF, ((FuncFormVar) item).getUniqueName(), "#NULL", "#NULL");
             }
         }

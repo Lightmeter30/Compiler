@@ -7,7 +7,7 @@ public class Func implements SymbolItem{
     private String name;
     private int argcNum;
     private Type type;
-    private int addr;
+    public int addr;
     public String loc;
     public Func(String name, Type type, int argcNum, String loc){
         this.name = name;
@@ -42,7 +42,7 @@ public class Func implements SymbolItem{
     }
 
     @Override
-    public int getAddr() {
+    public Integer getAddr() {
         return addr;
     }
 

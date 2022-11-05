@@ -65,7 +65,7 @@ public class Var implements SymbolItem{
     }
 
     @Override
-    public int getAddr() {
+    public Integer getAddr() {
         return addr;
     }
 

@@ -42,7 +42,7 @@ public class FuncFormVar implements SymbolItem{
     }
 
     @Override
-    public int getAddr() {
+    public Integer getAddr() {
         return this.addr;
     }
     public int getDimension(){

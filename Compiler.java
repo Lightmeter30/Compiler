@@ -2,6 +2,8 @@ import Mid.MidCode;
 import Mid.MidCodeList;
 import SymbolTable.SymLink;
 import SymbolTable.SymbolTable;
+import SymbolTable.SymbolItem;
+import back.Mips;
 import front.Lexer;
 import front.SyntacticParser;
 
@@ -9,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Compiler {
@@ -19,13 +22,19 @@ public class Compiler {
 
         //link Tree and SymbolTable
         symLink.buildSymbolTable();
-
         System.out.println("link Tree and SymbolTable may OK");
+
         HashMap<String, SymbolTable> funcTables = symLink.getFuncTables();
         MidCodeList midCodeList = new MidCodeList(symLink.nodeTableItem, funcTables);
         SyntacticParser.TreeRoot.createMidCode(midCodeList);
         System.out.println("中间代码完成!");
         outPutMidCode(midCodeList, "PreMidCode.txt");
+
+        HashMap<String, ArrayList<SymbolItem>> funcTable = symLink.getFuncTable();
+        Mips mips = new Mips(midCodeList.midCodes, midCodeList.formatString, funcTable,symLink.rootTable);
+        mips.createMipsCode();
+        mips.PrintMipsCode("mips.txt");
+        System.out.println("Mips Ok!");
     }
 
     private static void outPutMidCode(MidCodeList midCodeList, String name) throws IOException {

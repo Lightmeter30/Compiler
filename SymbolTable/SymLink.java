@@ -200,7 +200,7 @@ public class SymLink {
             ConstInfo token = ((ErrorSymbol) node.getChild().get(0)).getToken();
             FormatString formatString = (FormatString) stmt.getChild().get(1);
             if( formatString.getFormatStringNum() != stmt.getChild().size() - 2 ){
-                System.out.println("Error! the FormatString %d mismatch"); // may change
+                ErrorList.addError(new Error('l', token.getLineCounter()));//System.out.println("Error! the FormatString %d mismatch"); // may change
             }
         } else if( node instanceof PrimaryExp && ((PrimaryExp) node).lVal != null ) {
             PrimaryExp primaryExp = (PrimaryExp) node;

@@ -4,6 +4,7 @@ import SymbolTable.SymLink;
 import SymbolTable.SymbolTable;
 import SymbolTable.SymbolItem;
 import back.Mips;
+import front.ErrorList;
 import front.Lexer;
 import front.SyntacticParser;
 
@@ -24,6 +25,12 @@ public class Compiler {
         //link Tree and SymbolTable
         symLink.buildSymbolTable();
         System.out.println("link Tree and SymbolTable may OK");
+
+        if(!ErrorList.isNoError()) {
+            ErrorList.outPutError("error.txt");
+            System.out.println("the source codes have error!");
+            return;
+        }
 
         HashMap<String, SymbolTable> funcTables = symLink.getFuncTables();
         MidCodeList midCodeList = new MidCodeList(symLink.nodeTableItem, funcTables);

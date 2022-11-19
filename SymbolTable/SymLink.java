@@ -192,7 +192,7 @@ public class SymLink {
             Ident ident = (Ident) stmt.getChild().get(0).getChild().get(0);
             SymbolItem item = findInSymbolTable(ident.getName(), ident, "Var", true, currentTable);
             if(item != null && item.isConst()){
-                System.out.println("Error! can't change const"); // may change
+                ErrorList.addError(new Error('h', ident.getLineNum()));//System.out.println("Error! can't change const"); // may change
             }
             nodeTableItem.put(ident,item);
         } else if( node instanceof Stmt && ((Stmt) node).getType().equals(Stmt.Type.Output) ){

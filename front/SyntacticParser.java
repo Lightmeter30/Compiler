@@ -12,7 +12,6 @@ import java.util.ArrayList;
 public class SyntacticParser{
     public static int WordlistNum = Lexer.Wordlist.size();
     public static int WordlistIndex = -1; //WordlistIndex表示当前读到的单词的下标
-    public static int BlockType = -1; //当前Block块的属性
     public static CompUnit TreeRoot;
     public static boolean branch_opt = false;
     //不需要输出<BlockItem>, <Decl>, <BType>
@@ -35,6 +34,29 @@ public class SyntacticParser{
     }
     public static void BackWord(int num){
         WordlistIndex -= num;
+    }
+
+    public static void checkError(String word){
+        switch (word){
+            case ";":
+                if(!Lexer.Wordlist.get(WordlistIndex).getWord().equals(";")){
+                    BackWord(1);
+                    ErrorList.addError(new Error('i',Lexer.Wordlist.get(WordlistIndex).getLineCounter()));
+                }
+                break;
+            case ")":
+                if(!Lexer.Wordlist.get(WordlistIndex).getWord().equals(")")){
+                    BackWord(1);
+                    ErrorList.addError(new Error('j',Lexer.Wordlist.get(WordlistIndex).getLineCounter()));
+                }
+                break;
+            case "]":
+                if(!Lexer.Wordlist.get(WordlistIndex).getWord().equals("]")){
+                    BackWord(1);
+                    ErrorList.addError(new Error('k',Lexer.Wordlist.get(WordlistIndex).getLineCounter()));
+                }
+                break;
+        }
     }
     /*
     * 函数名: CompUnit 编译单元
@@ -106,6 +128,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord();//读入ConstDef后面的一个单词
         }
         //此时的单词应该是;
+        checkError(";");
         SyntacticParser.NewParseInfo("<ConstDecl>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<ConstDecl>");
@@ -126,6 +149,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord();//读入ConstExp的第一个单词
             constExps.add(SyntacticParser.ConstExp());
             SyntacticParser.ReadOneWord();//此时应该为]
+            checkError("]");
             SyntacticParser.ReadOneWord();//此时为[或=
             arrayDimension++;
         }
@@ -183,6 +207,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord();
         }
         //此时单词为;
+        checkError(";");
         SyntacticParser.NewParseInfo("<VarDecl>","");
         SyntacticParser.ReadOneWord();
 //        System.out.println("<VarDecl>");
@@ -202,8 +227,9 @@ public class SyntacticParser{
         while(Tools.isLbrack(WordlistIndex)){//'['左括号,最多是二维数组
             SyntacticParser.ReadOneWord();
             constExps.add(SyntacticParser.ConstExp());
-            SyntacticParser.ReadOneWord();
-            SyntacticParser.ReadOneWord();
+            SyntacticParser.ReadOneWord(); // ']'
+            checkError("]");
+            SyntacticParser.ReadOneWord(); // '[' or '='
             arrayDimension++;
         }
         if(arrayDimension > 2) System.out.println("error");
@@ -301,12 +327,14 @@ public class SyntacticParser{
         if(Tools.isLbrack(WordlistIndex)){//'['
             dimension++;
             SyntacticParser.ReadOneWord();//应该是']'
+            checkError("]");
             SyntacticParser.ReadOneWord();//可能是'['
             while(Tools.isLbrack(WordlistIndex)){
                 dimension++;
                 SyntacticParser.ReadOneWord();
                 constExps.add(SyntacticParser.ConstExp());
                 SyntacticParser.ReadOneWord();//应该是']'
+                checkError("]");
                 SyntacticParser.ReadOneWord();//可能是'['
             }
         }
@@ -376,6 +404,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord();//Cond
             childNode.add(SyntacticParser.Cond());
             SyntacticParser.ReadOneWord();//')'
+            checkError(")");
             SyntacticParser.ReadOneWord();//stmt
             childNode.add(SyntacticParser.Stmt());
             SyntacticParser.ReadOneWord();//可能是'else'
@@ -390,16 +419,19 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord();//Cond
             childNode.add(SyntacticParser.Cond());
             SyntacticParser.ReadOneWord();//')'
+            checkError(")");
             SyntacticParser.ReadOneWord();//stmt
             childNode.add(SyntacticParser.Stmt());
         }else if(Tools.isBreak(WordlistIndex)){
             type = Stmt.Type.BreakStmt;
             childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord();//';'
+            checkError(";");
         }else if(Tools.isContinue(WordlistIndex)){
             type = Stmt.Type.ContinueStmt;
             childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord();//';'
+            checkError(";");
         }else if(Tools.isReturn(WordlistIndex)){
             type = Stmt.Type.ReturnStmt;
             childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
@@ -408,6 +440,7 @@ public class SyntacticParser{
                 childNode.add(SyntacticParser.Exp());
                 SyntacticParser.ReadOneWord();
             }
+            checkError(";");
         }else if(Tools.isPrintf(WordlistIndex)){
             type = Stmt.Type.Output;
             childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
@@ -420,7 +453,9 @@ public class SyntacticParser{
                 childNode.add(SyntacticParser.Exp());
                 SyntacticParser.ReadOneWord();// ','  ')'
             }
+            checkError(")");
             SyntacticParser.ReadOneWord();// ';'
+            checkError(";");
         }else if(Tools.isLbrace(WordlistIndex)){
             type = Stmt.Type.Block;
             childNode.add(SyntacticParser.Block());
@@ -432,17 +467,20 @@ public class SyntacticParser{
                 type = Stmt.Type.Input;
                 SyntacticParser.ReadOneWord(); // '('
                 SyntacticParser.ReadOneWord(); // ')'
+                checkError(")");
             }else{
                 type = Stmt.Type.Assign;
                 childNode.add(SyntacticParser.Exp());
             }
             SyntacticParser.ReadOneWord(); // ';'
+            checkError(";");
         }else{
             if(!Tools.isSEMI(WordlistIndex)){
                 type = Stmt.Type.Exp;
                 childNode.add(SyntacticParser.Exp());
                 SyntacticParser.ReadOneWord(); // ';'
             }
+            checkError(";");
         }
         SyntacticParser.NewParseInfo("<Stmt>","");
         SyntacticParser.ReadOneWord();
@@ -483,6 +521,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord(); // Exp
             exps.add(SyntacticParser.Exp());
             SyntacticParser.ReadOneWord(); // ']'
+            checkError("]");
             SyntacticParser.ReadOneWord(); // '[' other
         }
         SyntacticParser.BackWord(1);
@@ -501,6 +540,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord(); // Exp
             exp = SyntacticParser.Exp();
             SyntacticParser.ReadOneWord(); // ')'
+            checkError(")");
             SyntacticParser.NewParseInfo("<PrimaryExp>","");
             SyntacticParser.ReadOneWord();
             return new PrimaryExp(exp);
@@ -556,6 +596,7 @@ public class SyntacticParser{
                     childNode.add(SyntacticParser.FuncRParams());
                     SyntacticParser.ReadOneWord(); // ')'
                 }
+                checkError(")");
             }else{ // It's other,so we need to back one word
                 type = UnaryExp.Type.PrimaryExp;
                 SyntacticParser.BackWord(1);
@@ -781,6 +822,7 @@ public class SyntacticParser{
             SyntacticParser.ReadOneWord();
         }
         // ')'
+        checkError(")");
         SyntacticParser.ReadOneWord();
 //        应该是'{'
         block = SyntacticParser.Block();
@@ -799,6 +841,7 @@ public class SyntacticParser{
         SyntacticParser.ReadOneWord();//'main'
         SyntacticParser.ReadOneWord();//'('
         SyntacticParser.ReadOneWord();//')'
+        checkError(")");
         SyntacticParser.ReadOneWord();//应该是'{'
         block = SyntacticParser.Block();
         ErrorSymbol blockEnd = new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1));
@@ -812,7 +855,8 @@ public class SyntacticParser{
      * 功能: 新建一个语法分析结果类,并且将其插入到Wordlist合适的位置中
      * */
     public static void NewParseInfo(String word,String symbol){
-        WordInfo temp = new ParseInfo(word,symbol);
+        int lineNum = Lexer.Wordlist.get(WordlistIndex).getLineCounter();
+        WordInfo temp = new ParseInfo(word,symbol,lineNum);
         Lexer.Wordlist.add(WordlistIndex+1,temp);
         WordlistNum++;
     }

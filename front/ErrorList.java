@@ -5,9 +5,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class ErrorList {
-    private static ArrayList<Error> errorList = new ArrayList<>();
+    private static final ArrayList<Error> errorList = new ArrayList<>();
 
     public static ArrayList<Error> getErrorList() {
         return errorList;
@@ -20,7 +22,9 @@ public class ErrorList {
         if(!file.exists()) file.createNewFile();
         FileWriter fileWriter = new FileWriter(file.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fileWriter);
-        for(Error error : errorList){
+        List<Error> result = errorList;
+        result.sort(Comparator.comparingInt(o -> o.lineCount));
+        for(Error error : result){
             bw.write(error.toString() + "\n");
         }
         bw.close();

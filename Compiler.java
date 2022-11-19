@@ -29,20 +29,19 @@ public class Compiler {
         if(!ErrorList.isNoError()) {
             ErrorList.outPutError("error.txt");
             System.out.println("the source codes have error!");
-            return;
+        } else {
+            HashMap<String, SymbolTable> funcTables = symLink.getFuncTables();
+            MidCodeList midCodeList = new MidCodeList(symLink.nodeTableItem, funcTables);
+            SyntacticParser.TreeRoot.createMidCode(midCodeList);
+            System.out.println("中间代码完成!");
+            outPutMidCode(midCodeList, "PreMidCode.txt");
+
+            HashMap<String, ArrayList<SymbolItem>> funcTable = symLink.getFuncTable();
+            Mips mips = new Mips(midCodeList.midCodes, midCodeList.formatString, funcTable,symLink.rootTable);
+            mips.createMipsCode();
+            mips.PrintMipsCode("mips.txt");
+            System.out.println("Mips Ok!");
         }
-
-        HashMap<String, SymbolTable> funcTables = symLink.getFuncTables();
-        MidCodeList midCodeList = new MidCodeList(symLink.nodeTableItem, funcTables);
-        SyntacticParser.TreeRoot.createMidCode(midCodeList);
-        System.out.println("中间代码完成!");
-        outPutMidCode(midCodeList, "PreMidCode.txt");
-
-        HashMap<String, ArrayList<SymbolItem>> funcTable = symLink.getFuncTable();
-        Mips mips = new Mips(midCodeList.midCodes, midCodeList.formatString, funcTable,symLink.rootTable);
-        mips.createMipsCode();
-        mips.PrintMipsCode("mips.txt");
-        System.out.println("Mips Ok!");
     }
 
     private static void outPutMidCode(MidCodeList midCodeList, String name) throws IOException {

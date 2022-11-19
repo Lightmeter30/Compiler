@@ -53,7 +53,7 @@ public class Lexer {
                             if(Tools.isNormalChar((char) ch) && !isMod ){
                                 token.append((char) ch);
                                 if( is_n && ch != 'n')
-                                    System.out.println("error");// \后面不是n的错误
+                                    ErrorList.addError(new Error('a',lineNum));//System.out.println("error"); \后面不是n的错误
                                 else if(is_n)
                                     is_n = false;
                                 if( ch == '\\' )
@@ -66,12 +66,14 @@ public class Lexer {
                                 formatCharNum++;
                                 isMod = false;
                             }else if(isMod){
-                                System.out.println("error");//不是%d的错误，暂定与出现非NormalChar字符错误一致
+                                ErrorList.addError(new Error('a',lineNum));//System.out.println("error"); 不是%d的错误，暂定与出现非NormalChar字符错误一致
                             }else if( Tools.isEnter((char) ch)){
                                 lineNum++;
                                 System.out.println("error");//出现换行
                             }else if( ch == -1 ){
                                 System.out.println("error");//已经结束力！
+                            } else {
+                                ErrorList.addError(new Error('a',lineNum)); //error
                             }
                             if( ch == -1 ) break; //先看看问题吧
                             getChar();

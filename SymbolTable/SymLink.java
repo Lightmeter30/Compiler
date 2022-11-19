@@ -1,13 +1,14 @@
 package SymbolTable;
 
+import front.ErrorList;
 import front.SyntaxTree.*;
 import front.Word.ConstInfo;
 import front.Error;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 public class SymLink {
     private final TreeNode root;
@@ -41,7 +42,6 @@ public class SymLink {
             ArrayList<SymbolItem> table = new ArrayList<>();
             addr = 4;
             addAllTableItemInTable(table, curTable);
-            //table.sort(Comparator.comparing(a -> a.getAddr()));
             result.put(funcName, table);
         }
         return result;
@@ -64,6 +64,7 @@ public class SymLink {
             currentTable = rootTable;
             symbolTables.put("<0_0>",currentTable);
             travel(root,null);
+            travelForCheck(root);
         } catch (Error ignored) {
             ignored.printStackTrace();
         }
@@ -136,7 +137,7 @@ public class SymLink {
             if(unaryExp.getChild().size() > 1)
                 paramNum = unaryExp.getChild().get(1).getChild().size();
             if(item != null && !((Func) item).checkArgcNum(paramNum)){
-                System.out.println("mismatch of params!"); // may change
+                ErrorList.addError(new Error('d', ident.getLineNum()));//System.out.println("mismatch of params!"); // may change
             }else{
                 // the paramsNum is ok
                 if( unaryExp.getChild().size() > 1 ) {
@@ -154,12 +155,12 @@ public class SymLink {
                                 SymbolItem funcCall = findInSymbolTable(name, ident, "Func", false, currentTable);
                                 if ( funcCall != null ) {
                                     if( ((Func) funcCall).getType().equals(Func.Type.voidFunc) && exp.isFuncCall() ) {
-                                        System.out.println("Error! funcCall argType mismatch!");// may change
+                                        ErrorList.addError(new Error('e', ident.getLineNum()));//System.out.println("Error! funcCall argType mismatch!");// may change
                                         index++;
                                         continue;
                                     } else if( ((Func) funcCall).getType().equals(Func.Type.intFunc) && exp.isFuncCall() ) {
                                         if( ((FuncFormVar) table.symbolList.get(index)).getDimension() != 0 )
-                                            System.out.println("Error! funcCall argType mismatch!");// may change
+                                            ErrorList.addError(new Error('e', ident.getLineNum()));//System.out.println("Error! funcCall argType mismatch!");// may change
                                         index++;
                                         continue;
                                     }
@@ -176,7 +177,7 @@ public class SymLink {
                                 formDimension = varDimension - exp.getDimension();
                             }
                             if ( ((FuncFormVar) table.symbolList.get(index)).getDimension() != formDimension )
-                                System.out.println("Error! funcCall argType mismatch!");
+                                ErrorList.addError(new Error('e', ident.getLineNum()));//System.out.println("Error! funcCall argType mismatch!"); // may change
                             index++;
                         }
                     }
@@ -231,6 +232,53 @@ public class SymLink {
         }
     }
 
+    private final Stack<BlockType> blockTypeStack = new Stack<>();
+    private final Stack<BlockType> funcBlockStack = new Stack<>();
+
+    private void travelForCheck(TreeNode node) {
+        if(node == null) return;
+        if(node instanceof FuncDef && ((FuncDef) node).getFuncType().getType().equals(FuncType.Type.Void)) { //void func
+            blockTypeStack.push(BlockType.voidFuncBlock);
+            funcBlockStack.push(BlockType.voidFuncBlock);
+        }else if(node instanceof FuncDef && ((FuncDef) node).getFuncType().getType().equals(FuncType.Type.Int) || node instanceof MainFuncDef) { //int func
+            blockTypeStack.push(BlockType.intFuncBlock);
+            funcBlockStack.push(BlockType.intFuncBlock);
+            Block block = (Block) node.getChild().get(node.getChild().size() - 2);
+            if(block.getChild().size() != 0){
+                TreeNode stmt = block.getChild().get(block.getChild().size() - 1).getChild().get(0);
+                if(!(stmt instanceof Stmt && ((Stmt) stmt).getType().equals(Stmt.Type.ReturnStmt))) {
+                    ErrorList.addError(new Error('g', ((ErrorSymbol) node.getChild().get(node.getChild().size() - 1)).getToken().getLineCounter())); //有返回值的函数缺少return语句
+                }
+            } else {
+                ErrorList.addError(new Error('g', ((ErrorSymbol) node.getChild().get(node.getChild().size() - 1)).getToken().getLineCounter())); //有返回值的函数缺少return语句
+            }
+        }else if(node instanceof Stmt) { //stmt
+            Stmt.Type type = ((Stmt) node).getType();
+            if(type.equals(Stmt.Type.ReturnStmt)){
+                if(node.getChild().size() > 1 && funcBlockStack.peek().equals(BlockType.voidFuncBlock)) {
+                    ErrorList.addError(new Error('f', ((ErrorSymbol) node.getChild().get(0)).getToken().getLineCounter()));
+                }
+//                else if(blockTypeStack.peek().equals(BlockType.intFuncBlock)){
+//
+//                }
+            }else if(type.equals(Stmt.Type.WhileBranch)) {
+                blockTypeStack.push(BlockType.whileBlock);
+            }else if(type.equals(Stmt.Type.BreakStmt) || type.equals(Stmt.Type.ContinueStmt)){
+                if(!blockTypeStack.peek().equals(BlockType.whileBlock)) {
+                    ErrorList.addError(new Error('m', ((ErrorSymbol) node.getChild().get(0)).getToken().getLineCounter()));
+                }
+            }
+        }
+        for(TreeNode child : node.getChild()){
+            travelForCheck(child);
+        }
+        if(node instanceof FuncDef || node instanceof MainFuncDef ) {
+            blockTypeStack.pop();
+            funcBlockStack.pop();
+        } else if( (node instanceof Stmt && ((Stmt) node).getType().equals(Stmt.Type.WhileBranch)) ) {
+            blockTypeStack.pop();
+        }
+    }
 
     /*
     * 对在建立符号表阶段可以初始化的常量进行初始化;
@@ -264,8 +312,8 @@ public class SymLink {
             return findInSymbolTable(name, ident, type, checkError, currentTable.fatherTable);
         }
         if(checkError)
-            System.out.println("checkError!!!");//may change
-        return null;
+            ErrorList.addError(new Error('c', ident.getLineNum()));//System.out.println("checkError!!!");//may change
+        return null; // may change
     }
 
     private void addFuncFormalArgs(TreeNode Args) throws Error {
@@ -282,7 +330,7 @@ public class SymLink {
         // may change
         for(SymbolItem item: currentTable.symbolList){
             if(item.getName().equals(name) && (( item instanceof Func && Type.equals("Func") ) || ( item instanceof Var && Type.equals("Var") ) || ( item instanceof FuncFormVar && Type.equals("FuncFormVar")))){
-                System.out.println("redefine error!");
+                ErrorList.addError(new Error('b', ident.getLineNum())); //System.out.println("redefine error!");
             }
         }
     }

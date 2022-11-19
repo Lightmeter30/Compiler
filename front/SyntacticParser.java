@@ -394,9 +394,11 @@ public class SyntacticParser{
             childNode.add(SyntacticParser.Stmt());
         }else if(Tools.isBreak(WordlistIndex)){
             type = Stmt.Type.BreakStmt;
+            childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord();//';'
         }else if(Tools.isContinue(WordlistIndex)){
             type = Stmt.Type.ContinueStmt;
+            childNode.add(new ErrorSymbol((ConstInfo) Lexer.Wordlist.get(WordlistIndex)));
             SyntacticParser.ReadOneWord();//';'
         }else if(Tools.isReturn(WordlistIndex)){
             type = Stmt.Type.ReturnStmt;

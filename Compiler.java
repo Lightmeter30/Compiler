@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 public class Compiler {
     public static void main(String[] args) throws IOException {
+
         Lexer.LexerIt(); //词法解析器
         SyntacticParser.SyntacticParse(); //语法分析器
         SymLink symLink = new SymLink(SyntacticParser.TreeRoot);
@@ -47,6 +48,6 @@ public class Compiler {
             bw.write(midCode.toString() + "\n");
         }
         bw.close();
-        System.out.println("outPut finish!");
+        System.out.println("outPut MidCode finish!");
     }
 }

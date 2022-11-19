@@ -592,7 +592,7 @@ public class SyntacticParser{
                 type = UnaryExp.Type.FuncCall;
                 childNode.add(new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex - 1)));
                 SyntacticParser.ReadOneWord();// ')' or FuncRParams
-                if(!Tools.isRpar(WordlistIndex)){// Not ')'
+                if(!Tools.isRpar(WordlistIndex) && !Tools.isSEMI(WordlistIndex)){// Not ')'
                     childNode.add(SyntacticParser.FuncRParams());
                     SyntacticParser.ReadOneWord(); // ')'
                 }
@@ -817,7 +817,7 @@ public class SyntacticParser{
         Ident ident = new Ident((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
         SyntacticParser.ReadOneWord(); // '('
         SyntacticParser.ReadOneWord(); // 可能')'
-        if(!Tools.isRpar(WordlistIndex)){//可能为FuncParams
+        if(!Tools.isRpar(WordlistIndex) && !Tools.isLbrace(WordlistIndex)){//可能为FuncParams
             funcFParams = SyntacticParser.FuncFParams();
             SyntacticParser.ReadOneWord();
         }

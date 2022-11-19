@@ -320,7 +320,7 @@ public class SymLink {
         FuncFParams params = (FuncFParams) Args;
         for(FuncFParam param: params.getFuncFParams()){
             String name = param.getName();
-            checkTable(name, param.ident, "Var");
+            checkTable(name, param.ident, "FuncFormVar");
             int dimension = param.getDimension();
             FuncFormVar funcFormVar = new FuncFormVar(name,dimension,param.getShape(),getLoc());
             currentTable.symbolList.add(funcFormVar);

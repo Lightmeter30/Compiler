@@ -47,35 +47,42 @@ public class Lexer {
                     }else if(Tools.isDquotes((char) ch)){ //printf里面的东西捏
                         token.append((char) ch);
                         getChar();
-                        boolean isMod = false,is_n = false; //判断前一个符号是不是 %  \
                         int formatCharNum = 0;    //记录FormatChar的个数，即%d的个数。
+                        boolean isError = false;
                         while(!Tools.isDquotes((char) ch)){ // 没有读到"前不会结束,假如中间出现换行、非NormalChar的字符、%后面不是d、\后面不是n结束则报错
-                            if(Tools.isNormalChar((char) ch) && !isMod ){
-                                token.append((char) ch);
-                                if( is_n && ch != 'n')
-                                    ErrorList.addError(new Error('a',lineNum));//System.out.println("error"); \后面不是n的错误
-                                else if(is_n)
-                                    is_n = false;
-                                if( ch == '\\' )
-                                    is_n = true;
-                            }else if( Tools.isMod((char) ch) && !isMod ){
-                                token.append((char) ch);
-                                isMod = true;
-                            }else if( isMod && ch == 'd' ){
-                                token.append((char) ch);
-                                formatCharNum++;
-                                isMod = false;
-                            }else if(isMod){
-                                ErrorList.addError(new Error('a',lineNum));//System.out.println("error"); 不是%d的错误，暂定与出现非NormalChar字符错误一致
-                            }else if( Tools.isEnter((char) ch)){
-                                lineNum++;
-                                System.out.println("error");//出现换行
-                            }else if( ch == -1 ){
-                                System.out.println("error");//已经结束力！
+                            if(Tools.isNormalChar((char) ch)){
+                                if(ch == '\\') {
+                                    getChar();
+                                    if(ch != 'n') {
+                                        SwitchRetract();
+                                        if(!isError) {
+                                            ErrorList.addError(new Error('a',lineNum));//System.out.println("error"); \后面不是n的错误
+                                            isError = true;
+                                        }
+                                    } else
+                                        token.append("\n");
+                                } else {
+                                    token.append((char) ch);
+                                }
+
+                            } else if(Tools.isMod((char) ch)) {
+                                getChar();
+                                if(ch != 'd') {
+                                    SwitchRetract();
+                                    if(!isError){
+                                        ErrorList.addError(new Error('a',lineNum));//System.out.println("error"); 不是%d的错误
+                                        isError = true;
+                                    }
+                                } else {
+                                    token.append("%d");
+                                    formatCharNum++;
+                                }
                             } else {
-                                ErrorList.addError(new Error('a',lineNum)); //error
+                                if(!isError){
+                                    ErrorList.addError(new Error('a',lineNum)); //error
+                                    isError = true;
+                                }
                             }
-                            if( ch == -1 ) break; //先看看问题吧
                             getChar();
                         }
                         //此时 ch = “ 或 -1

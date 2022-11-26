@@ -53,8 +53,8 @@ public class Stmt implements TreeNode{
                     } else {
                         String elseLabel = midCodeList.add(MidCode.Op.JUMP_IF,boolValue + " " + 0, "==", "#AUTO_LABEL");
                         childNode.get(1).createMidCode(midCodeList); // if stmt
-                        midCodeList.add(MidCode.Op.LABEL,"#NULL", "#NULL", elseLabel);
                         String endIf = midCodeList.add(MidCode.Op.JUMP, "#NULL", "#NULL", "#AUTO_LABEL");
+                        midCodeList.add(MidCode.Op.LABEL,"#NULL", "#NULL", elseLabel);
                         childNode.get(2).createMidCode(midCodeList);//else stmt
                         midCodeList.add(MidCode.Op.LABEL,"#NULL", "#NULL",endIf);
                     }

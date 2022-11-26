@@ -436,7 +436,32 @@ public class Mips {
                     addOneMipsCode("j", result);
                     break;
                 case JUMP_IF:
-                    System.out.println("JUMP_IF");
+                    String left = operand1.split(" ")[0];
+                    String right = operand1.split(" ")[1];
+                    boolean leftInReg = isInRegister(left) || setRegister(left,true);
+                    boolean rightInReg = isInRegister(right) || setRegister(right,true);
+                    String leftReg = "$a1";
+                    String rightReg = "$a2";
+//                    String Left = operandToAddr(left);
+//                    String Right = operandToAddr(right);
+
+                    if(isConst(left)) {
+                        addOneMipsCode("li", leftReg, operandToAddr(left));
+                    } else if(leftInReg){
+                        leftReg = operandToAddr(left);
+                    } else {
+                        addOneMipsCode("lw", leftReg, operandToAddr(left));
+                    }
+
+                    if(isConst(right)) {
+                        addOneMipsCode("li", rightReg, operandToAddr(right));
+                    } else if(rightInReg) {
+                        rightReg = operandToAddr(right);
+                    }else{
+                        addOneMipsCode("lw", rightReg, operandToAddr(right));
+                    }
+
+                    addOneMipsCode(mipsBOp.get(operand2), leftReg, rightReg, result);
                     break;
                 case LABEL:
                     addOneMipsCode(result + ":");
@@ -713,7 +738,7 @@ public class Mips {
     }
 
     /**
-     * 根据变量operand的类型，返回其所对应的寄存器编号
+     * 根据变量operand的类型，返回其所对应的寄存器编号 或者常数
      * @param operand 变量
      * @return 寄存器编号或者operand所在内存的地址
      */

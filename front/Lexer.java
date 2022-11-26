@@ -60,7 +60,7 @@ public class Lexer {
                                             isError = true;
                                         }
                                     } else
-                                        token.append("\n");
+                                        token.append("\\n");
                                 } else {
                                     token.append((char) ch);
                                 }

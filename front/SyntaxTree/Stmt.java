@@ -105,12 +105,16 @@ public class Stmt implements TreeNode{
             case Output:
                 String[] cutFormatString = ((FormatString) childNode.get(1)).getString().split("%d");
                 int i = 0;
-                for(TreeNode node: childNode.subList(2,childNode.size())) {
+                ArrayList<String> Number = new ArrayList<>();
+                for(TreeNode node: childNode.subList(2,childNode.size())){
+                    Number.add(node.createMidCode(midCodeList));
+                }
+                for(TreeNode ignored : childNode.subList(2,childNode.size())) {
                     if ( i < cutFormatString.length && !cutFormatString[i].equals("") ) {
                         midCodeList.add(MidCode.Op.PRINT, cutFormatString[i], "#STRCONS", "#NULL");
                     }
                     // number
-                    midCodeList.add(MidCode.Op.PRINT, node.createMidCode(midCodeList), "#NULL", "#NULL");
+                    midCodeList.add(MidCode.Op.PRINT, Number.get(i), "#NULL", "#NULL");
                     i++;
                 }
                 if ( i < cutFormatString.length && !cutFormatString[i].equals("") ){

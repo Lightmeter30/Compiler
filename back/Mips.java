@@ -404,7 +404,7 @@ public class Mips {
                                 addOneMipsCode("sll",register1,register1, "2");
                             }
                             if(isGlobal) {
-                                itemAddr = "arr_" + name.split("@")[0] + "_(" + register1 + ")";
+                                itemAddr = "array_" + name.split("@")[0] + "_(" + register1 + ")";
                             } else {
                                 addOneMipsCode("addu", register1, register1, String.valueOf((Objects.requireNonNull(findItemInFuncTable(name)).getAddr() + funcCallSpOffset)));
                                 addOneMipsCode("addu", register1, register1, "$sp");
@@ -696,15 +696,21 @@ public class Mips {
     }
 
     public String setRegisterT(String name) {
+        int min = -1;
         for(int i = 0;i < registerT.size();i++) {
             if( registerT.get(i).equals("#NULL") ) {
                 registerT.set(i, name);
                 return "$t" + i;
+            } else {
+                if( min == -1 || Integer.parseInt(registerT.get(min).substring(2)) > Integer.parseInt(registerT.get(i).substring(2)) ) {
+                    min = i;
+                }
             }
         }
-        return "#FULL";
+        registerT.set(min, name);
+        return "$t" + min;
+//        return "#FULL";
     }
-
     /**
      * loadValue: 把oprand的value存储到寄存器register中
      * @param operand maybe number, in Register, in memory
@@ -775,6 +781,7 @@ public class Mips {
             }
         }
         assert curItem != null;
+        System.out.println((funcCallSpOffset + curItem.getAddr()) + "($sp)");
         return (funcCallSpOffset + curItem.getAddr()) + "($sp)"; // may change
     }
 

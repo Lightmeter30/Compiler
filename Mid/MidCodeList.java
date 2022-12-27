@@ -105,7 +105,7 @@ public class MidCodeList {
         if ( operation.equals(MidCode.Op.FUNC) && !operand2.equals("main") ) {
             for (SymbolItem item: currentFuncTable.get(operand2).symbolList) {
                 if ( item instanceof FuncFormVar && ((FuncFormVar) item).getDimension() == 0 ) // may change
-                    this.add(MidCode.Op.FUNC_FORM_VAR_DEF, ((FuncFormVar) item).getUniqueName(), "#NULL", "#NULL");
+                    this.add(MidCode.Op.FUNC_FORM_VAR_DEF, item.getUniqueName(), "#NULL", "#NULL");
             }
         }
         return end;

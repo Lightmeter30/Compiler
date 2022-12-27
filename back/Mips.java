@@ -16,14 +16,14 @@ public class Mips {
 
     public int paraNum = 0;
     public String paraAddr;
-    public static final int LocalAddrInit = 104;    // ???
+    public static final int LocalAddrInit = 104;    // 函数调用必备栈运行空间偏移量(寄存器S,T等)
     public static final int StackTBegin = 60;       // stack中$t0相对于$sp的偏移
     public static final int StackSBegin = 24;       // stack中$s0相对于$sp的偏移
     public static final String StackRA = "0($sp)";  //stack中$ra相对于$sp的偏移
     public static final int _dataStart = 0x10010000;    // .data段开始地址
     public int funcCallSpOffset = 0;                    // 函数调用前$sp指针的偏移量
     public String currentFuncName = "";                 // 当前函数的名字
-    public final Stack<Integer> prepareCnt = new Stack<>(); //栈顶为函数调用时参数的个数
+    public final Stack<Integer> prepareCnt = new Stack<>(); //栈顶为函数调用时参数的个数,进行函数调用后需要pop掉;暂时没啥用
     public final ArrayList<Integer> spSize = new ArrayList<Integer>() {{add(0);}}; // 相当于一个栈, 函数调用完成后弹出相关信息, 其和为当前偏移量;
 
     public int index;

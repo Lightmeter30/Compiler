@@ -244,6 +244,7 @@ public class Mips {
                 case MUL:
                 case DIV:
                 case MOD:
+                case BITAND:
                     String mipsOp = mipsAOp.get(operation);
                     String Reg1 = "$a1";
                     String Reg2 = "$a2";
@@ -581,6 +582,9 @@ public class Mips {
         return label;
     }
 
+    /*
+    * 判断变量(数组名)是否为函数的参数
+    * */
     private boolean isPointer(String name) {
         SymbolItem curItem = null;
         if (!currentFuncName.equals("")) {
@@ -603,6 +607,9 @@ public class Mips {
         return curItem instanceof FuncFormVar;
     }
 
+    /*
+    * 赋值语句:把operand1 = operand2
+    * */
     private void GenAssign(String operand1, String operand2) {
         boolean aInRegister = isInRegister(operand1) || setRegister(operand1, false);
         String a = operandToAddr(operand1);
@@ -662,6 +669,7 @@ public class Mips {
         }
     }
 
+    // 释放寄存器 addr
     private void release(String addr) {
         if (addr.charAt(0) == '$' && addr.charAt(1) == 't' ) {
             // $t寄存器需要释放喵
@@ -670,14 +678,17 @@ public class Mips {
         }
     }
 
+    // operand是否为常数
     private boolean isConst(String operand) {
         return Tools.isBeginByNumber(operand) && !operand.equals("0") && !(operand).endsWith("($sp)") && !(operand).endsWith("($gp)");
     }
 
+    // 变量(operantion)是否在mipsBOp里面
     private boolean isConJump(String operation) {
         return this.mipsBOp.containsValue(operation);
     }
 
+    // 为变量(name)分配$s寄存器
     public String setRegisterS(String name) {
         for(int i = 0;i < registerS.size();i++){
             if( registerS.get(i).equals("#NULL")) {
@@ -695,6 +706,7 @@ public class Mips {
         return "#FULL";
     }
 
+    // 为变量(name)分配$t寄存器
     public String setRegisterT(String name) {
         int min = -1;
         for(int i = 0;i < registerT.size();i++) {
@@ -712,7 +724,7 @@ public class Mips {
 //        return "#FULL";
     }
     /**
-     * loadValue: 把oprand的value存储到寄存器register中
+     * loadValue: 把operand的value读取到寄存器register中
      * @param operand maybe number, in Register, in memory
      * @param register the name of register
      */
@@ -728,7 +740,7 @@ public class Mips {
     }
 
     /**
-     * saveValue: 把register中的值赋给operand
+     * saveValue: 把register中的值存储到operand所在的地址
      * @param operand maybe in register, in memory, not number
      * @param register have the value we need to store
      */
@@ -744,9 +756,9 @@ public class Mips {
     }
 
     /**
-     * 根据变量operand的类型，返回其所对应的寄存器编号 或者常数
+     * 根据变量operand的类型，返回其所对应的寄存器编号或者常数
      * @param operand 变量
-     * @return 寄存器编号或者operand所在内存的地址
+     * @return 寄存器编号或者operand所在内存的地址: 4($gp) 100($sp)
      */
     private String operandToAddr(String operand) {
         if( Tools.isBeginByNumber(operand) ) {
@@ -786,10 +798,10 @@ public class Mips {
     }
 
     /**
-     *
+     * 根据变量operand,获取operand[arrayRank]对应的内存地址,并且将其保存到$a0;
      * @param operand
      * @param arrayRank
-     * @return
+     * @return $a0
      */
     private String operandToAddrArray(String operand, String arrayRank) {
         SymbolItem curItem = null;
@@ -888,6 +900,7 @@ public class Mips {
         return register0;
     }
 
+    // 为变量(str)分配寄存器
     private boolean setRegister(String str, boolean onlyPara) {
         if( str.charAt(0) != '#' && !isInGlobal(str) && optimizeSetRegister && !isConst(str) ) {
             //对非临时变量、非全局变量、非常数的变量进行寄存器s的分配
@@ -904,7 +917,7 @@ public class Mips {
         return false;
     }
 
-    // find item in funcTable, globalTable, sonTable;
+    // find item in funcTable, globalTable;
     private SymbolItem findItem(String operand) {
         SymbolItem curItem = null;
         if( !currentFuncName.equals("")) {
@@ -927,19 +940,21 @@ public class Mips {
         return curItem;
     }
 
-    // find item in funcTable, sonTable
+    // find item in funcTable;
     private SymbolItem findItemInFuncTable(String name) {
         for(SymbolItem item : allFuncTable.get(currentFuncName))
             if(item.getUniqueName().equals(name)) return item;
         return null;
     }
 
+    // 判断变量是否在全局符号表
     private boolean isInGlobal(String str) {
         for (SymbolItem item : globalTable.symbolList)
             if(item.getUniqueName().equals(str)) return true;
         return false;
     }
 
+    // 指针$sp总的偏移量
     private int sum(ArrayList<Integer> spSize) {
         int sum = 0;
         for(Integer i : spSize)
@@ -947,6 +962,7 @@ public class Mips {
         return sum;
     }
 
+    // operand是否在寄存器中
     private boolean isInRegister(String operand) {
         if( operand.equals("0") || operand.equals("%RTX") )
             return true;
@@ -961,6 +977,7 @@ public class Mips {
         return false;
     }
 
+    // 打印mips代码
     public void PrintMipsCode(String name) throws IOException {
         File file = new File(name);
         if(!file.exists()) file.createNewFile();
@@ -989,6 +1006,7 @@ public class Mips {
         mipsAOp.put(MidCode.Op.MUL, "mul");
         mipsAOp.put(MidCode.Op.DIV, "div");
         mipsAOp.put(MidCode.Op.MOD, "mod");
+        mipsAOp.put(MidCode.Op.BITAND, "and");
         //  判断跳转初始化
         mipsBOp.put("!=", "bne");
         mipsBOp.put("==", "beq");

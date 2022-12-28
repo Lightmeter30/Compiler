@@ -228,7 +228,10 @@ public class Tools {
         return Tools.isPlus(index) || Tools.isMinu(index) || Tools.isNot(index);
     }
     public static boolean isMulOp(int index){
-        return Tools.isMult(index) || Tools.isDiv(index) || Tools.isMod(index);
+        return Tools.isMult(index) || Tools.isDiv(index) || Tools.isMod(index) || Tools.isBitAnd(index);
+    }
+    public static boolean isBitAnd(int index) {
+        return Lexer.Wordlist.get(index).getSymbol().equals("BITAND");
     }
     public static boolean isAddOp(int index){
         return Tools.isPlus(index) || Tools.isMinu(index);

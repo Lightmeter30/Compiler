@@ -10,7 +10,7 @@ public class MidCode {
         GETINT, FUNC, END_FUNC, PREPARE_CALL, CALL,
         PUSH_PARA,RETURN, VAR_DEF, CONST_DEF,
         ARR_SAVE, ARR_LOAD, PUSH_PARA_ARR,
-        JUMP_IF, JUMP, LABEL, SET,
+        JUMP_IF, JUMP, LABEL, SET,BITAND,
         //???
         SIGNAL_ARR_ADDR, NEW_BLOCK, EXIT_BLOCK,
         WHILE_BIND, EMPTY, EMPTY_INPUT, ENTER_WHILE,
@@ -58,6 +58,7 @@ public class MidCode {
         OpToTring.put(Op.JUMP, "JUMP");
         OpToTring.put(Op.LABEL, "LABEL");
         OpToTring.put(Op.SET, "SET");
+        OpToTring.put(Op.BITAND, "BITAND");
     }
 
     public static boolean isArithmetic(MidCode.Op op){
@@ -112,7 +113,7 @@ public class MidCode {
                 return operand1 + " = " + operand2;
         }
         if( !result.equals("#NULL") )
-            return result + " = " + operand1 + " " + OpToTring.get(operation);
+            return result + " = " + operand1 + " " + OpToTring.get(operation) + " " + operand2;
         if( operand1.equals("#NULL") && operand2.equals("#NULL") )
             return OpToTring.get(operation);
         if( operand2.equals("#NULL") )

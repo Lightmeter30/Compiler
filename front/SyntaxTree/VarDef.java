@@ -12,6 +12,7 @@ public class VarDef implements TreeNode{
     private InitVal initVal;
     private ArrayList<TreeNode> childNode = new ArrayList<>();
     private int dimension;
+    public boolean getInt = false;
     public VarDef(Ident ident, int dimension, ArrayList<ConstExp> constExps){
         this.ident = ident;
         this.dimension = dimension;
@@ -29,6 +30,15 @@ public class VarDef implements TreeNode{
         this.childNode.addAll(constExps);
         this.childNode.add(initVal);
     }
+
+    public VarDef(Ident ident,ArrayList<ConstExp> constExps, boolean getInt){
+        this.ident = ident;
+        this.getInt = getInt;
+        this.dimension = 0;
+        this.constExps = constExps;
+        this.childNode.add(ident);
+        this.childNode.addAll(constExps);
+    }
     @Override
     public ArrayList<TreeNode> getChild() {
         return childNode;
@@ -37,6 +47,11 @@ public class VarDef implements TreeNode{
     @Override
     public String createMidCode(MidCodeList midCodeList) {
         String name = ident.getName() + "@" + midCodeList.nodeTableItem.get(ident).getLoc();
+        if(getInt) {
+            String result = midCodeList.add(MidCode.Op.GETINT,"#TEMP","#NULL", "#NULL");
+            midCodeList.add(MidCode.Op.VAR_DEF, name, result, "#NULL");
+            return "";
+        }
         if ( constExps.size() == 0 ) {
             // not array
             if( initVal != null ) {

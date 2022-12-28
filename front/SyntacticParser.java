@@ -215,7 +215,7 @@ public class SyntacticParser{
     }
     /*
      * 函数名: VarDef 变量定义
-     * 文法: VarDef → Ident { '[' ConstExp ']' } [ '=' InitVal ]
+     * 文法: VarDef → Ident { '[' ConstExp ']' } [ '=' InitVal | getint() ]
      * 解释: 包含普通变量、一维数组、二维数组定义
      * */
     public static VarDef VarDef(){
@@ -234,7 +234,14 @@ public class SyntacticParser{
         }
         if(arrayDimension > 2) System.out.println("error");
         if(Tools.isEqu(WordlistIndex)){
-            SyntacticParser.ReadOneWord();
+            SyntacticParser.ReadOneWord(); // getint or initval
+            if(Tools.isGetint(WordlistIndex)) {
+                SyntacticParser.ReadOneWord(); // (
+                SyntacticParser.ReadOneWord(); // )
+                SyntacticParser.NewParseInfo("<VarDef>","");
+                SyntacticParser.ReadOneWord();
+                return new VarDef(ident, constExps,true);
+            }
             initVal =  SyntacticParser.InitVal();
             SyntacticParser.NewParseInfo("<VarDef>","");
             SyntacticParser.ReadOneWord();
@@ -653,7 +660,7 @@ public class SyntacticParser{
         unaryExps.add(SyntacticParser.UnaryExp());
         SyntacticParser.NewParseInfo("<MulExp>","");
         SyntacticParser.ReadOneWord(); // <MulExp>
-        SyntacticParser.ReadOneWord(); // '*' | '/' | '%' | other
+        SyntacticParser.ReadOneWord(); // '*' | '/' | '%' | 'bitand' | other
         while(Tools.isMulOp(WordlistIndex)){
             Ops.add((ConstInfo) Lexer.Wordlist.get(WordlistIndex));
             SyntacticParser.ReadOneWord(); // UnaryExp

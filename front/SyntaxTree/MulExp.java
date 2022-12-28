@@ -33,7 +33,7 @@ public class MulExp implements TreeNode{
         for(int i = 0;i < Ops.size(); i++){
             String op2 = unaryExps.get(i + 1).createMidCode(midCodeList);
             MidCode.Op op = Ops.get(i).getWord().equals("*") ? MidCode.Op.MUL :
-                    Ops.get(i).getWord().equals("/") ? MidCode.Op.DIV : MidCode.Op.MOD;
+                    Ops.get(i).getWord().equals("/") ? MidCode.Op.DIV : Ops.get(i).getWord().equals("%") ? MidCode.Op.MOD : MidCode.Op.BITAND;
             result = midCodeList.add(op,op1,op2,"#TEMP");
             op1 = result;
         }

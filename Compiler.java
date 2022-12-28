@@ -20,7 +20,7 @@ public class Compiler {
 
         Lexer.LexerIt(); //词法解析器
         SyntacticParser.SyntacticParse(); //语法分析器,语法分析;构建语法树
-        SymLink symLink = new SymLink(SyntacticParser.TreeRoot);//
+        SymLink  symLink = new SymLink(SyntacticParser.TreeRoot);//
 
         //link Tree and SymbolTable
         symLink.buildSymbolTable(); // 创建符号表;

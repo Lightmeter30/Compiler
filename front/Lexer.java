@@ -292,6 +292,9 @@ public class Lexer {
             case "void":
                 NewWordInfo("void", "VOIDTK");
                 break;
+            case "bitand":
+                NewWordInfo("bitand", "BITAND");
+                break;
             default:
                 NewWordInfo(word, "IDENFR");
                 break;
